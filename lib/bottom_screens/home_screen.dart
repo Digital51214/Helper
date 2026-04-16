@@ -41,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: EdgeInsets.only(top: h * 0.012),
                 child: Column(
                   children: [
+                    SizedBox(height: w*0.01,),
                     Align(
                       alignment: Alignment.topLeft,
                       child: Text(
@@ -52,9 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-
-                    SizedBox(height: h * 0.01),
-
+                    SizedBox(height: w*0.05,),
                     /// Job Card
                     Expanded(
                       child: SingleChildScrollView(
@@ -62,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           children: [
                             Container(
-                              height: h * 0.225,
+                              height: h*0.225,
                               decoration: BoxDecoration(
                                 color: Color(0xFFEAF4F6),
                                 borderRadius: BorderRadius.circular(20),
@@ -71,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: Row(
                                 children: [
                                   Container(
-                                    height: h * 0.215,
+                                    height: h*0.215,
                                     width: w * 0.02,
                                     decoration: BoxDecoration(
                                       color: Color(0xFF2A8DA7),
@@ -100,8 +99,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Container(
-                                                height: base * 0.16,
-                                                width: base * 0.16,
+                                                height: base * 0.15,
+                                                width: base * 0.15,
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
                                                   shape: BoxShape.circle,
@@ -126,7 +125,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     Text(
                                                       'Shopping Delivery',
                                                       style: TextStyle(
-                                                        fontSize: base * 0.045,
+                                                        fontSize: base * 0.038,
                                                         fontFamily: 'SB',
                                                         fontWeight:
                                                             FontWeight.w600,
@@ -153,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             'Road123, colony Z',
                                                             style: TextStyle(
                                                               fontSize:
-                                                                  base * 0.035,
+                                                                  base * 0.028,
                                                               fontFamily: 'R',
                                                               fontWeight:
                                                                   FontWeight
@@ -172,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ],
                                           ),
 
-                                          SizedBox(height: h * 0.02),
+                                          SizedBox(height: h * 0.018),
 
                                           /// 🔹 Second Row
                                           Row(
@@ -181,8 +180,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 image: AssetImage(
                                                   'assets/images/home5.png',
                                                 ),
-                                                height: base * 0.08,
-                                                width: base * 0.08,
+                                                height: base * 0.05,
+                                                width: base * 0.05,
                                               ),
 
                                               SizedBox(width: w * 0.005),
@@ -190,20 +189,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                               Text(
                                                 '12 min ago',
                                                 style: TextStyle(
-                                                  fontSize: base * 0.03,
+                                                  fontSize: base * 0.02,
                                                   fontFamily: 'R',
                                                   fontWeight: FontWeight.w400,
                                                 ),
                                               ),
 
-                                              SizedBox(width: w * 0.03),
+                                              SizedBox(width: w * 0.032),
 
                                               Image(
                                                 image: AssetImage(
                                                   'assets/images/home4.png',
                                                 ),
-                                                height: base * 0.055,
-                                                width: base * 0.055,
+                                                height: base * 0.05,
+                                                width: base * 0.05,
                                               ),
 
                                               SizedBox(width: w * 0.01),
@@ -211,20 +210,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                               Text(
                                                 '50k + Applied',
                                                 style: TextStyle(
-                                                  fontSize: base * 0.03,
+                                                  fontSize: base * 0.02,
                                                   fontFamily: 'R',
                                                   fontWeight: FontWeight.w400,
                                                 ),
                                               ),
                                               Spacer(),
                                               Container(
-                                                height: h * 0.04,
-                                                width: w * 0.2,
                                                 decoration: BoxDecoration(
                                                   color: Color(0xFFD7EBDC),
                                                   borderRadius:
-                                                      BorderRadius.circular(12),
+                                                      BorderRadius.circular(7),
                                                 ),
+                                                padding: EdgeInsets.symmetric(vertical:w * 0.01,horizontal: w*0.03),
                                                 child: Row(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment.center,
@@ -240,7 +238,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         fontWeight:
                                                             FontWeight.w500,
                                                         fontFamily: 'M',
-                                                        fontSize: base * 0.035,
+                                                        fontSize: base * 0.03,
                                                       ),
                                                     ),
                                                   ],
@@ -254,20 +252,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 MainAxisAlignment.end,
                                             children: [
                                               Container(
-                                                height: h * 0.04,
-                                                width: w * 0.24,
                                                 decoration: BoxDecoration(
                                                   borderRadius:
-                                                      BorderRadius.circular(8),
+                                                      BorderRadius.circular(10),
                                                   color: Colors.black,
                                                 ),
+                                                padding: EdgeInsets.symmetric(vertical: w*0.02,horizontal: w*0.03),
                                                 child: Center(
                                                   child: Text(
                                                     'See Details',
                                                     style: TextStyle(
                                                       fontFamily: 'B',
                                                       fontWeight: FontWeight.w700,
-                                                      fontSize: base * 0.035,
+                                                      fontSize: base * 0.03,
                                                       color: Colors.white,
                                                     ),
                                                   ),
@@ -285,16 +282,16 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             SizedBox(height: h *0.01),
                             Container(
-                              height: h * 0.225,
+                              height: h*0.225,
                               decoration: BoxDecoration(
-                                color: Color(0xFFFDF7EA),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Color(0xFFCDCDCD))
+                                  color: Color(0xFFFDF7EA),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: Color(0xFFCDCDCD))
                               ),
                               child: Row(
                                 children: [
                                   Container(
-                                    height: h * 0.215,
+                                    height: h*0.215,
                                     width: w * 0.02,
                                     decoration: BoxDecoration(
                                       color: Color(0xFFEFB32C),
@@ -320,18 +317,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                           /// 🔹 First Row
                                           Row(
                                             crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                            CrossAxisAlignment.start,
                                             children: [
                                               Container(
-                                                height: base * 0.16,
-                                                width: base * 0.16,
+                                                height: base * 0.15,
+                                                width: base * 0.15,
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
                                                   shape: BoxShape.circle,
                                                 ),
                                                 child: Center(
                                                   child: Image.asset(
-                                                    'assets/images/home7.png',
+                                                    'assets/images/home6.png',
                                                     height: base * 0.1,
                                                     width: base * 0.1,
                                                     fit: BoxFit.contain,
@@ -344,15 +341,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                               Expanded(
                                                 child: Column(
                                                   crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
                                                       'Shopping Delivery',
                                                       style: TextStyle(
-                                                        fontSize: base * 0.045,
+                                                        fontSize: base * 0.038,
                                                         fontFamily: 'SB',
                                                         fontWeight:
-                                                            FontWeight.w600,
+                                                        FontWeight.w600,
                                                       ),
                                                     ),
 
@@ -376,15 +373,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             'Road123, colony Z',
                                                             style: TextStyle(
                                                               fontSize:
-                                                                  base * 0.035,
+                                                              base * 0.028,
                                                               fontFamily: 'R',
                                                               fontWeight:
-                                                                  FontWeight
-                                                                      .w400,
+                                                              FontWeight
+                                                                  .w400,
                                                             ),
                                                             overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
+                                                            TextOverflow
+                                                                .ellipsis,
                                                           ),
                                                         ),
                                                       ],
@@ -395,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ],
                                           ),
 
-                                          SizedBox(height: h * 0.02),
+                                          SizedBox(height: h * 0.018),
 
                                           /// 🔹 Second Row
                                           Row(
@@ -404,8 +401,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 image: AssetImage(
                                                   'assets/images/home5.png',
                                                 ),
-                                                height: base * 0.08,
-                                                width: base * 0.08,
+                                                height: base * 0.05,
+                                                width: base * 0.05,
                                               ),
 
                                               SizedBox(width: w * 0.005),
@@ -413,20 +410,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                               Text(
                                                 '12 min ago',
                                                 style: TextStyle(
-                                                  fontSize: base * 0.03,
+                                                  fontSize: base * 0.02,
                                                   fontFamily: 'R',
                                                   fontWeight: FontWeight.w400,
                                                 ),
                                               ),
 
-                                              SizedBox(width: w * 0.03),
+                                              SizedBox(width: w * 0.032),
 
                                               Image(
                                                 image: AssetImage(
                                                   'assets/images/home4.png',
                                                 ),
-                                                height: base * 0.055,
-                                                width: base * 0.055,
+                                                height: base * 0.05,
+                                                width: base * 0.05,
                                               ),
 
                                               SizedBox(width: w * 0.01),
@@ -434,28 +431,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                               Text(
                                                 '50k + Applied',
                                                 style: TextStyle(
-                                                  fontSize: base * 0.03,
+                                                  fontSize: base * 0.02,
                                                   fontFamily: 'R',
                                                   fontWeight: FontWeight.w400,
                                                 ),
                                               ),
                                               Spacer(),
                                               Container(
-                                                height: h * 0.04,
-                                                width: w * 0.2,
                                                 decoration: BoxDecoration(
                                                   color: Color(0xFFE2DDD3),
                                                   borderRadius:
-                                                      BorderRadius.circular(12),
+                                                  BorderRadius.circular(7),
                                                 ),
+                                                padding: EdgeInsets.symmetric(vertical:w * 0.01,horizontal: w*0.03),
                                                 child: Center(
                                                   child: Text(
                                                     'InActive',
                                                     style: TextStyle(
                                                       fontWeight:
-                                                          FontWeight.w500,
+                                                      FontWeight.w500,
                                                       fontFamily: 'M',
-                                                      fontSize: base * 0.035,
+                                                      fontSize: base * 0.03,
                                                     ),
                                                   ),
                                                 ),
@@ -465,23 +461,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                           SizedBox(height: h * 0.022),
                                           Row(
                                             mainAxisAlignment:
-                                                MainAxisAlignment.end,
+                                            MainAxisAlignment.end,
                                             children: [
                                               Container(
-                                                height: h * 0.04,
-                                                width: w * 0.25,
                                                 decoration: BoxDecoration(
                                                   borderRadius:
-                                                      BorderRadius.circular(8),
-                                                  color: Color(0xFF959595)
+                                                  BorderRadius.circular(10),
+                                                  color: Color(0xFF959595),
                                                 ),
+                                                padding: EdgeInsets.symmetric(vertical: w*0.02,horizontal: w*0.03),
                                                 child: Center(
                                                   child: Text(
-                                                    'See Details' ,
+                                                    'See Details',
                                                     style: TextStyle(
                                                       fontFamily: 'B',
                                                       fontWeight: FontWeight.w700,
-                                                      fontSize: base * 0.035,
+                                                      fontSize: base * 0.03,
                                                       color: Colors.white,
                                                     ),
                                                   ),
@@ -558,10 +553,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       "Find Your\nPerfect Help!",
                       style: TextStyle(
                         fontFamily: 'SB',
-                        fontSize: base * 0.07,
+                        fontSize: base * 0.06,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
+                    SizedBox(width: w*0.07,),
                     Image.asset("assets/images/home3.png", height: h * 0.09),
                   ],
                 ),
@@ -570,6 +566,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 /// Search Field
                 Container(
+                  height: h*0.058,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(base * 0.08),
                     boxShadow: [
@@ -595,7 +592,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       hintText: 'Search',
                       hintStyle: TextStyle(
                         fontWeight: FontWeight.w400,
-                        fontSize: base * 0.04,
+                        fontSize: base * 0.03,
                         fontFamily: 'R',
                         color: const Color(0xFFA4A4A4),
                       ),

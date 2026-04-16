@@ -147,7 +147,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
 
 
-                    SizedBox(height: h * 0.012),
+                    SizedBox(height: h * 0.01),
 
                     /// Location Toggle
                     Container(
@@ -217,7 +217,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
 
-                    SizedBox(height: h * 0.012),
+                    SizedBox(height: h * 0.01),
                     _settingTile(
                       context,
                       imagePath: 'assets/images/wallet.png',
@@ -232,7 +232,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         );
                       },
                     ),
-                    SizedBox(height: h * 0.012),
+                    SizedBox(height: h * 0.01),
                     _settingTile(
                       context,
                       imagePath: 'assets/images/worker.png',
@@ -386,7 +386,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: h * 0.07,
+        height: h*0.072,
         width: w * 0.9,
         decoration: BoxDecoration(
           border: Border.all(color: const Color(0xFF1313131A)),

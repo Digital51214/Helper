@@ -74,12 +74,10 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: w * 0.05,
-                  vertical: h * 0.0432,
+                  vertical: h * 0.034,
                 ),
                 child: Row(
-                  children: [
-                    // Skip
-                    TextButton(
+                  children: [TextButton(
                       onPressed: () => _controller.jumpToPage(2),
                       child: Text(
                         "Skip",
@@ -196,7 +194,7 @@ class OnboardPage extends StatelessWidget {
           ),
           SizedBox(height: h * 0.03),
           Image.asset(image, height: h * 0.32, fit: BoxFit.contain),
-          SizedBox(height: h * 0.035),
+          SizedBox(height: h * 0.032),
 
           // Title
           Row(
@@ -206,7 +204,7 @@ class OnboardPage extends StatelessWidget {
                     ? RichText(
                   text: TextSpan(
                     style: TextStyle(
-                      fontSize: w * 0.055,
+                      fontSize: w * 0.04,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
@@ -216,7 +214,7 @@ class OnboardPage extends StatelessWidget {
                         style: TextStyle(
                           color: const Color(0xFF2A8DA7),
                           fontWeight: FontWeight.w700,
-                          fontSize: w * 0.06,
+                          fontSize: w * 0.067,
                           fontFamily: 'B',
                         ),
                       ),
@@ -224,7 +222,7 @@ class OnboardPage extends StatelessWidget {
                         text: "Help, When\nYou",
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
-                          fontSize: w * 0.06,
+                          fontSize: w * 0.067,
                           fontFamily: 'R',
                         ),
                       ),
@@ -233,7 +231,7 @@ class OnboardPage extends StatelessWidget {
                         style: TextStyle(
                           color: const Color(0xFF2A8DA7),
                           fontWeight: FontWeight.w700,
-                          fontSize: w * 0.062,
+                          fontSize: w * 0.068,
                           fontFamily: 'B',
                         ),
                       ),
@@ -243,7 +241,7 @@ class OnboardPage extends StatelessWidget {
                     : RichText(
                   text: TextSpan(
                     style: TextStyle(
-                      fontSize: w * 0.05,
+                      fontSize: w * 0.03,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
@@ -253,7 +251,7 @@ class OnboardPage extends StatelessWidget {
                         style: TextStyle(
                           color: const Color(0xFF2A8DA7),
                           fontWeight: FontWeight.w700,
-                          fontSize: w * 0.065,
+                          fontSize: w * 0.067,
                           fontFamily: 'B',
                         ),
                       ),
@@ -261,7 +259,7 @@ class OnboardPage extends StatelessWidget {
                         text: "On Your Own\n",
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
-                          fontSize: w * 0.065,
+                          fontSize: w * 0.067,
                           fontFamily: 'R',
                         ),
                       ),
@@ -270,7 +268,7 @@ class OnboardPage extends StatelessWidget {
                         style: TextStyle(
                           color: const Color(0xFF2A8DA7),
                           fontWeight: FontWeight.w700,
-                          fontSize: w * 0.065,
+                          fontSize: w * 0.068,
                           fontFamily: 'B',
                         ),
                       ),
@@ -285,15 +283,13 @@ class OnboardPage extends StatelessWidget {
           // Subtitle
           Row(
             children: [
-              Expanded(
-                child: Text(
-                  subtitle,
-                  textAlign: TextAlign.start,
-                  style: TextStyle(
-                    fontFamily: 'L',
-                    fontSize: w * 0.045,
-                    color: Colors.black,
-                  ),
+              Text(
+                subtitle,
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                  fontFamily: 'L',
+                  fontSize: w * 0.039,
+                  color: Colors.black,
                 ),
               ),
             ],

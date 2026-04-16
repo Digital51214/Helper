@@ -47,7 +47,7 @@ class CustomWidgets extends StatelessWidget {
           style: TextStyle(
             fontFamily: 'B',
             fontWeight: FontWeight.w700,
-            fontSize: ws.width * 0.05, // 👈 responsive text
+            fontSize: ws.width * 0.045, // 👈 responsive text
           ),
         ),
       ],

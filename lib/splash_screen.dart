@@ -1,7 +1,10 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:helper/auth_screen/login.dart';
+import 'package:helper/bottom_screens/bottom_navigation_screen.dart';
+import 'package:helper/session_manager.dart';
 import 'package:helper/welcome_screen.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -12,26 +15,53 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    Timer(Duration(seconds: 5),(){
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => WelcomeScreen(),));
-    });
+    _checkSession();
   }
+
+  Future<void> _checkSession() async {
+    await Future.delayed(const Duration(seconds: 5));
+
+    final bool isLoggedIn = await SessionManager.isLoggedIn();
+
+    if (!mounted) return;
+
+    if (isLoggedIn) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const BottomNavigationScreen(),
+        ),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => WelcomeScreen(),
+          // Agar tum chaho to yahan Login() bhi kar sakte ho
+          // builder: (context) => const Login(),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+        children: const [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image(image: AssetImage('assets/images/signup1.png'),height: 200,width: 200,)
-
+              Image(
+                image: AssetImage('assets/images/signup1.png'),
+                height: 200,
+                width: 200,
+              ),
             ],
-          )
+          ),
         ],
       ),
     );

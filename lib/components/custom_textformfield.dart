@@ -18,27 +18,31 @@ class CustomTextformField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      keyboardType: keyBoardType,
-      obscureText: obsecureText,
-      controller: controller,
-      cursorColor: Colors.grey,
-      style: TextStyle(color: Colors.grey),
-      decoration: InputDecoration(
-        hintText: title,
-        hintStyle: TextStyle(color: Colors.grey),
-        suffixIcon: sufixIcon,
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-              borderSide: BorderSide(
-            color: Color(0xFFCDCDCD)
-        )
-        ),
-        focusedBorder:  OutlineInputBorder(
+    final size = MediaQuery.of(context).size;
+    return SizedBox(
+      height: size.height*0.058,
+      child: TextFormField(
+        keyboardType: keyBoardType,
+        obscureText: obsecureText,
+        controller: controller,
+        cursorColor: Colors.grey,
+        style: TextStyle(color: Colors.grey),
+        decoration: InputDecoration(
+          hintText: title,
+          hintStyle: TextStyle(color: Colors.grey,fontSize: 14),
+          suffixIcon: sufixIcon,
+          enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30),
-            borderSide: BorderSide(
-                color: Color(0xFFCDCDCD)
-            )
+                borderSide: BorderSide(
+              color: Color(0xFFCDCDCD)
+          )
+          ),
+          focusedBorder:  OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
+              borderSide: BorderSide(
+                  color: Color(0xFFCDCDCD)
+              )
+          ),
         ),
       ),
     );

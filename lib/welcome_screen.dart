@@ -98,7 +98,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ],
                       ),
                     ),
-                    SizedBox(width: w * 0.04),
+                    SizedBox(width: w * 0.07),
                     Image.asset(
                       'assets/images/welcom8.png',
                       height: h * 0.13,
@@ -150,9 +150,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                   const OnBoardingScreen(),
                                 ),
                               );
-                            },
-                            icon: const Icon(Icons.arrow_forward),
-                            color: Colors.white,
+                            }, icon: Icon(Icons.arrow_forward_sharp,color: Colors.white,),
                           ),
                         ),
                       ],

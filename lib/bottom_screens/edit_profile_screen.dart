@@ -77,55 +77,60 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             SizedBox(height: 60 * hScale),
 
             // Name TextField
-            TextFormField(
-              decoration: InputDecoration(
-                hintText: 'Rehan R',
-                hintStyle: TextStyle(
-                  fontFamily: 'SB',
-                  fontSize: 12 * tScale,
-                  fontWeight: FontWeight.w600,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30 * tScale),
-                  borderSide: BorderSide(color: Color(0xFFCDCDCD)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30 * tScale),
-                  borderSide: BorderSide(color: Color(0xFFCDCDCD)),
-                ),
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: 16 * hScale,
-                  horizontal: 20 * wScale,
+            SizedBox(
+              height: size.height*0.058,
+              child: TextFormField(
+                decoration: InputDecoration(
+                  hintText: 'Rehan R',
+                  hintStyle: TextStyle(
+                    fontFamily: 'SB',
+                    fontSize: 12 * tScale,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30 * tScale),
+                    borderSide: BorderSide(color: Color(0xFFCDCDCD)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30 * tScale),
+                    borderSide: BorderSide(color: Color(0xFFCDCDCD)),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 16 * hScale,
+                    horizontal: 20 * wScale,
+                  ),
                 ),
               ),
             ),
-            SizedBox(height: 10 * hScale),
+            SizedBox(height: size.height*0.01),
 
             // Email TextField
-            TextFormField(
-              decoration: InputDecoration(
-                hintText: 'Example@mail.com',
-                hintStyle: TextStyle(
-                  fontFamily: 'SB',
-                  fontSize: 12 * tScale,
-                  fontWeight: FontWeight.w600,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30 * tScale),
-                  borderSide: BorderSide(color: Color(0xFFCDCDCD)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30 * tScale),
-                  borderSide: BorderSide(color: Color(0xFFCDCDCD)),
-                ),
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: 16 * hScale,
-                  horizontal: 20 * wScale,
+            SizedBox(
+              height: size.height*0.058,
+              child: TextFormField(
+                decoration: InputDecoration(
+                  hintText: 'Example@mail.com',
+                  hintStyle: TextStyle(
+                    fontFamily: 'SB',
+                    fontSize: 12 * tScale,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30 * tScale),
+                    borderSide: BorderSide(color: Color(0xFFCDCDCD)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30 * tScale),
+                    borderSide: BorderSide(color: Color(0xFFCDCDCD)),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 16 * hScale,
+                    horizontal: 20 * wScale,
+                  ),
                 ),
               ),
             ),
-            SizedBox(height: 15 * hScale),
-
+            SizedBox(height: size.height*0.04,),
             // Update Button
             GestureDetector(
               onTap: () {
@@ -137,7 +142,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 );
               },
               child: Container(
-                height: 50 * hScale, // better height
+                height: size.height*0.058, // better height
                 width: 373 * wScale, // better width
                 decoration: BoxDecoration(
                   color: Colors.black,
@@ -152,7 +157,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     'Update',
                     style: TextStyle(
                       fontFamily: 'SB',
-                      fontSize: 18 * tScale, // use tScale for text scaling
+                      fontSize: 14 * tScale, // use tScale for text scaling
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
                     ),

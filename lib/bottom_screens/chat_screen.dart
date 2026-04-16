@@ -37,7 +37,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     style: TextStyle(
                       fontFamily: 'B',
                       fontWeight: FontWeight.w700,
-                      fontSize: w * 0.07,
+                      fontSize: w * 0.06,
                     ),
                   ),
                 ],
@@ -62,7 +62,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       child: Column(
                         children: [
-                          SizedBox(height: h * 0.06),
+                          SizedBox(height: h * 0.04),
 
                           Padding(
                             padding: EdgeInsets.symmetric(
@@ -147,6 +147,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     left: w * 0.04,
                     right: w * 0.04,
                     child: Container(
+                      height: h*0.058,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(w * 0.08),
                         boxShadow: [
@@ -169,7 +170,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           hintText: 'Search',
                           hintStyle: TextStyle(
                             fontWeight: FontWeight.w400,
-                            fontSize: 12,
+                            fontSize:  12,
                             fontFamily: 'R',
                             color: const Color(0xFFA4A4A4),
                           ),
@@ -238,7 +239,7 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Container(
           margin: EdgeInsets.symmetric(
             horizontal: w * 0.04,
-            vertical: w * 0.015,
+            vertical: w * 0.011,
           ),
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.shade300),

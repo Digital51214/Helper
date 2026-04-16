@@ -163,7 +163,7 @@ class _PostjobScreenState extends State<PostjobScreen> {
                 }
               },
               child: Container(
-                height: h * 0.07, // responsive height
+                height: h*0.072, // responsive height
                 width: double.infinity,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
@@ -293,7 +293,7 @@ class _StepOnePageState extends State<StepOnePage> {
                     Text(
                       'What do you\nneed help with?',
                       style: TextStyle(
-                        fontSize: w * 0.062,
+                        fontSize: w * 0.06,
                         fontFamily: 'B',
                         fontWeight: FontWeight.w700,
                       ),
@@ -302,7 +302,7 @@ class _StepOnePageState extends State<StepOnePage> {
                     Text(
                       'Select a category that best describes\nyour task?',
                       style: TextStyle(
-                        fontSize: base * 0.04,
+                        fontSize: base * 0.038,
                         fontFamily: 'L',
                         fontWeight: FontWeight.w300,
                       ),
@@ -454,7 +454,7 @@ class _StepTwoPageState extends State<StepTwoPage> {
           Text(
             'Job Details',
             style: TextStyle(
-              fontSize: w * 0.062,
+              fontSize: w * 0.06,
               fontFamily: 'B',
               fontWeight: FontWeight.w700,
             ),
@@ -465,7 +465,7 @@ class _StepTwoPageState extends State<StepTwoPage> {
           Text(
             'Enter all the required details',
             style: TextStyle(
-              fontSize: base * 0.048,
+              fontSize: base * 0.046,
               fontFamily: 'L',
               fontWeight: FontWeight.w300,
             ),
@@ -473,63 +473,70 @@ class _StepTwoPageState extends State<StepTwoPage> {
           SizedBox(height: h * 0.03),
 
           /// 🔹 Job Title Field
-          TextFormField(
-            cursorColor: Color(0xFFA4A4A4),
-            style: TextStyle(
-              fontFamily: 'R',
-              fontSize: base * 0.04,
-              color: Color(0xFFA4A4A4),
-            ),
-            decoration: InputDecoration(
-              hintText: 'Job Title...',
-              hintStyle: TextStyle(
-                fontSize: base * 0.04,
-                color: Color(0xFFA4A4A4),
-                fontWeight: FontWeight.w400,
+          SizedBox(
+            height: h*0.058,
+            child: TextFormField(
+              cursorColor: Color(0xFFA4A4A4),
+              style: TextStyle(
                 fontFamily: 'R',
+                fontSize: base * 0.034,
+                color: Color(0xFFA4A4A4),
               ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
+              decoration: InputDecoration(
+                hintText: 'Job Title...',
+                hintStyle: TextStyle(
+                  fontSize: base * 0.034,
+                  color: Color(0xFFA4A4A4),
+                  fontWeight: FontWeight.w400,
+                  fontFamily: 'R',
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                contentPadding: EdgeInsets.symmetric(vertical: 2,horizontal: 10),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
+                ),
               ),
             ),
           ),
-          SizedBox(height: h * 0.02),
+          SizedBox(height: h * 0.014),
 
           /// 🔹 Description Field
-          TextFormField(
-            cursorColor: Color(0xFFA4A4A4),
-            maxLines: 4,
-            style: TextStyle(
-              fontFamily: 'R',
-              fontSize: base * 0.04,
-              color: Color(0xFFA4A4A4),
-            ),
-            decoration: InputDecoration(
-              hintText: 'Description...',
-              hintStyle: TextStyle(
-                fontSize: base * 0.04,
-                color: Color(0xFFA4A4A4),
-                fontWeight: FontWeight.w400,
+          SizedBox(
+            height: h*0.15,
+            child: TextFormField(
+              cursorColor: Color(0xFFA4A4A4),
+              maxLines: 4,
+              style: TextStyle(
                 fontFamily: 'R',
+                fontSize: base * 0.034,
+                color: Color(0xFFA4A4A4),
               ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
+              decoration: InputDecoration(
+                hintText: 'Description...',
+                hintStyle: TextStyle(
+                  fontSize: base * 0.034,
+                  color: Color(0xFFA4A4A4),
+                  fontWeight: FontWeight.w400,
+                  fontFamily: 'R',
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
+                ),
               ),
             ),
           ),
@@ -539,12 +546,12 @@ class _StepTwoPageState extends State<StepTwoPage> {
           Text(
             'Add Photos',
             style: TextStyle(
-              fontSize: base * 0.04,
+              fontSize: base * 0.035,
               fontFamily: 'M',
               fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(height: h * 0.02),
+          SizedBox(height: h * 0.017),
 
           /// 🔹 Dotted Border Upload Container
           GestureDetector(
@@ -552,7 +559,7 @@ class _StepTwoPageState extends State<StepTwoPage> {
               pickImage(); // Har click par new images add hongi
             },
             child: SizedBox(
-              height: h * 0.16,
+              height: h*0.15,
               width: double.infinity,
               child: CustomPaint(
                 painter: DottedBorderPainter(),
@@ -735,7 +742,7 @@ class _StepThreePageState extends State<StepThreePage> {
           child: Text(
             'Schedule',
             style: TextStyle(
-              fontSize: w * 0.062,
+              fontSize: w * 0.06,
               fontFamily: 'B',
               fontWeight: FontWeight.w700,
             ),
@@ -749,7 +756,7 @@ class _StepThreePageState extends State<StepThreePage> {
           child: Text(
             'Provide the details',
             style: TextStyle(
-              fontSize: base * 0.048,
+              fontSize: base * 0.046,
               fontFamily: 'L',
               fontWeight: FontWeight.w300,
             ),
@@ -758,128 +765,136 @@ class _StepThreePageState extends State<StepThreePage> {
         SizedBox(height: h * 0.03),
 
         /// 🔹 Job Title Field
-        TextFormField(
-          readOnly: true,
-          controller: TextEditingController(text: selectedPriceType),
-          cursorColor: const Color(0xFFA4A4A4),
-          style: TextStyle(
-            fontFamily: 'R',
-            fontSize: base * 0.04,
-            color: const Color(0xFFA4A4A4),
-          ),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: const Color(0xFF2A8DA7).withOpacity(0.09),
-            hintText: selectedPriceType.isEmpty ? 'Select Price Type' : null,
-            hintStyle: TextStyle(
-              fontSize: base * 0.04,
-              color: const Color(0xFFA4A4A4),
-              fontWeight: FontWeight.w400,
+        SizedBox(
+          height: h*0.058,
+          child: TextFormField(
+            readOnly: true,
+            controller: TextEditingController(text: selectedPriceType),
+            cursorColor: const Color(0xFFA4A4A4),
+            style: TextStyle(
               fontFamily: 'R',
+              fontSize: base * 0.034,
+              color: const Color(0xFFA4A4A4),
             ),
-
-            suffixIcon: PopupMenuButton<String>(
-              icon: const Icon(
-                Icons.keyboard_arrow_down,
-                color: Color(0xFF2A8DA7),
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.symmetric(vertical: 2,horizontal: 8),
+              filled: true,
+              fillColor: const Color(0xFF2A8DA7).withOpacity(0.09),
+              hintText: selectedPriceType.isEmpty ? 'Select Price Type' : null,
+              hintStyle: TextStyle(
+                fontSize: base * 0.034,
+                color: const Color(0xFFA4A4A4),
+                fontWeight: FontWeight.w400,
+                fontFamily: 'R',
               ),
 
-              offset: const Offset(0, 55),
+              suffixIcon: PopupMenuButton<String>(
+                icon: const Icon(
+                  Icons.keyboard_arrow_down,
+                  color: Color(0xFF2A8DA7),
+                ),
 
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
+                offset: const Offset(0, 55),
 
-              color: Colors.white,
-              elevation: 8,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
 
-              /// 👇 full se thori kam width
-              constraints: BoxConstraints(
-                minWidth: MediaQuery.of(context).size.width * 0.9,
-              ),
+                color: Colors.white,
+                elevation: 8,
 
-              onSelected: (value) {
-                setState(() {
-                  selectedPriceType = value;
-                });
-              },
+                /// 👇 full se thori kam width
+                constraints: BoxConstraints(
+                  minWidth: MediaQuery.of(context).size.width * 0.9,
+                ),
 
-              itemBuilder: (context) {
-                final options = ["Fixed Price", "Horal Price"]
-                    .where((opt) => opt != selectedPriceType)
-                    .toList();
+                onSelected: (value) {
+                  setState(() {
+                    selectedPriceType = value;
+                  });
+                },
 
-                return options.map((opt) {
-                  return PopupMenuItem<String>(
-                    value: opt,
-                    padding: EdgeInsets.zero,
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 14,
-                          horizontal: 16,
-                        ),
-                        child: Text(
-                          opt,
-                          style: TextStyle(
-                            fontFamily: 'R',
-                            fontSize: base * 0.04,
-                            color: const Color(0xFFA4A4A4),
+                itemBuilder: (context) {
+                  final options = ["Fixed Price", "Horal Price"]
+                      .where((opt) => opt != selectedPriceType)
+                      .toList();
+
+                  return options.map((opt) {
+                    return PopupMenuItem<String>(
+                      value: opt,
+                      padding: EdgeInsets.zero,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 16,
+                          ),
+                          child: Text(
+                            opt,
+                            style: TextStyle(
+                              fontFamily: 'R',
+                              fontSize: base * 0.04,
+                              color: const Color(0xFFA4A4A4),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                }).toList();
-              },
-            ),
-
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
-
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
-              borderSide: BorderSide(
-                color: const Color(0xFF2A8DA7).withOpacity(0.09),
+                    );
+                  }).toList();
+                },
               ),
-            ),
 
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
-              borderSide: BorderSide(
-                color: const Color(0xFF2A8DA7).withOpacity(0.09),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide(
+                  color: const Color(0xFF2A8DA7).withOpacity(0.09),
+                ),
+              ),
+
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide(
+                  color: const Color(0xFF2A8DA7).withOpacity(0.09),
+                ),
               ),
             ),
           ),
         ),
 
         SizedBox(height: h * 0.01),
-        TextFormField(
-          keyboardType: TextInputType.number,
-          cursorColor: Color(0xFFA4A4A4),
-          style: TextStyle(
-            fontFamily: 'R',
-            fontSize: base * 0.04,
-            color: Color(0xFFA4A4A4),
-          ),
-          decoration: InputDecoration(
-            hintText: 'Amount...',
-            hintStyle: TextStyle(
-              fontSize: base * 0.04,
-              color: Color(0xFFA4A4A4),
-              fontWeight: FontWeight.w400,
+        SizedBox(
+          height: h*0.058,
+          child: TextFormField(
+            keyboardType: TextInputType.number,
+            cursorColor: Color(0xFFA4A4A4),
+            style: TextStyle(
               fontFamily: 'R',
+              fontSize: base * 0.034,
+              color: Color(0xFFA4A4A4),
             ),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
-              borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
-              borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
+            decoration: InputDecoration(
+              contentPadding: EdgeInsets.symmetric(vertical: 2,horizontal: 8),
+              hintText: 'Amount...',
+              hintStyle: TextStyle(
+                fontSize: base * 0.034,
+                color: Color(0xFFA4A4A4),
+                fontWeight: FontWeight.w400,
+                fontFamily: 'R',
+              ),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
+              ),
             ),
           ),
         ),
@@ -889,7 +904,7 @@ class _StepThreePageState extends State<StepThreePage> {
           child: Text(
             'Schedule',
             style: TextStyle(
-              fontSize: w * 0.054,
+              fontSize: w * 0.05,
               fontFamily: 'M',
               fontWeight: FontWeight.w500,
             ),
@@ -898,79 +913,83 @@ class _StepThreePageState extends State<StepThreePage> {
         SizedBox(height: h * 0.01),
 
         // Pehle controller create karo
-        TextFormField(
-          controller: scheduleController,
-          readOnly: true,
-          // User direct type na kare, sirf picker se select kare
-          cursorColor: Color(0xFFA4A4A4),
-          style: TextStyle(
-            fontFamily: 'R',
-            fontSize: base * 0.04,
-            color: Color(0xFFA4A4A4),
-          ),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Color(0xFF2A8DA7).withOpacity(0.09),
-            hintText: 'Schedule',
-            hintStyle: TextStyle(
-              fontSize: base * 0.04,
-              color: Color(0xFFA4A4A4),
-              fontWeight: FontWeight.w400,
+        SizedBox(
+          height: h*0.058,
+          child: TextFormField(
+            controller: scheduleController,
+            readOnly: true,
+            // User direct type na kare, sirf picker se select kare
+            cursorColor: Color(0xFFA4A4A4),
+            style: TextStyle(
               fontFamily: 'R',
+              fontSize: base * 0.034,
+              color: Color(0xFFA4A4A4),
             ),
-            suffixIcon: GestureDetector(
-              onTap: () async {
-                DateTime? pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2100),
-                  builder: (context, child) {
-                    return Theme(
-                      data: Theme.of(context).copyWith(
-                        colorScheme: ColorScheme.light(
-                          primary: Color(0xFF2A8DA7),
-                          // ✅ Selected date circle color
-                          onPrimary: Colors.white,
-                          // ✅ Selected date number color
-                          onSurface: Colors.black, // ✅ Unselected dates color
-                        ),
-                        textButtonTheme: TextButtonThemeData(
-                          style: TextButton.styleFrom(
-                            foregroundColor: Color(
-                              0xFF2A8DA7,
-                            ), // ✅ Buttons color (Cancel, OK)
+            decoration: InputDecoration(
+              filled: true,
+              contentPadding: EdgeInsets.symmetric(vertical: 2,horizontal: 8),
+              fillColor: Color(0xFF2A8DA7).withOpacity(0.09),
+              hintText: 'Schedule',
+              hintStyle: TextStyle(
+                fontSize: base * 0.034,
+                color: Color(0xFFA4A4A4),
+                fontWeight: FontWeight.w400,
+                fontFamily: 'R',
+              ),
+              suffixIcon: GestureDetector(
+                onTap: () async {
+                  DateTime? pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: ColorScheme.light(
+                            primary: Color(0xFF2A8DA7),
+                            // ✅ Selected date circle color
+                            onPrimary: Colors.white,
+                            // ✅ Selected date number color
+                            onSurface: Colors.black, // ✅ Unselected dates color
+                          ),
+                          textButtonTheme: TextButtonThemeData(
+                            style: TextButton.styleFrom(
+                              foregroundColor: Color(
+                                0xFF2A8DA7,
+                              ), // ✅ Buttons color (Cancel, OK)
+                            ),
                           ),
                         ),
-                      ),
-                      child: child!,
-                    );
-                  },
-                );
+                        child: child!,
+                      );
+                    },
+                  );
 
-                if (pickedDate != null) {
-                  scheduleController.text =
-                      "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
-                }
-              },
-              child: Padding(
-                padding: EdgeInsets.all(11.0),
-                child: Image.asset(
-                  'assets/images/calender.png',
-                  height: h * 0.03,
-                  width: w * 0.03,
+                  if (pickedDate != null) {
+                    scheduleController.text =
+                        "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
+                  }
+                },
+                child: Padding(
+                  padding: EdgeInsets.all(11.0),
+                  child: Image.asset(
+                    'assets/images/calender.png',
+                    height: h * 0.03,
+                    width: w * 0.03,
+                  ),
                 ),
               ),
-            ),
 
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
-              borderSide:  BorderSide(color:Color(0xFF2A8DA7).withOpacity(0.09)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(30),
-              borderSide:  BorderSide(color: Color(0xFF2A8DA7).withOpacity(0.09)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide:  BorderSide(color:Color(0xFF2A8DA7).withOpacity(0.09)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide:  BorderSide(color: Color(0xFF2A8DA7).withOpacity(0.09)),
+              ),
             ),
           ),
         ),
@@ -1002,7 +1021,7 @@ class _StepFourPageState extends State<StepFourPage> {
             child: Text(
               'Location ',
               style: TextStyle(
-                fontSize: w * 0.062,
+                fontSize: w * 0.06,
                 fontFamily: 'B',
                 fontWeight: FontWeight.w700,
               ),
@@ -1016,7 +1035,7 @@ class _StepFourPageState extends State<StepFourPage> {
             child: Text(
               'Enter your location',
               style: TextStyle(
-                fontSize: base * 0.048,
+                fontSize: base * 0.046,
                 fontFamily: 'L',
                 fontWeight: FontWeight.w300,
               ),
@@ -1025,38 +1044,41 @@ class _StepFourPageState extends State<StepFourPage> {
           SizedBox(height: h * 0.02),
           Image(image: AssetImage('assets/images/step6.png')),
           SizedBox(height: h * 0.02),
-          TextFormField(
-            cursorColor: Color(0xFFA4A4A4),
-            style: TextStyle(
-              fontFamily: 'R',
-              fontSize: base * 0.04,
-              color: Color(0xFFA4A4A4),
-            ),
-            decoration: InputDecoration(
-              hintText: 'Enter your location...',
-              hintStyle: TextStyle(
-                fontSize: base * 0.04,
-                color: Color(0xFFA4A4A4),
-                fontWeight: FontWeight.w400,
+          SizedBox(
+            height: h*0.058,
+            child: TextFormField(
+              cursorColor: Color(0xFFA4A4A4),
+              style: TextStyle(
                 fontFamily: 'R',
+                fontSize: base * 0.034,
+                color: Color(0xFFA4A4A4),
               ),
-              suffixIcon: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Image(
-                  image: AssetImage('assets/images/locationicon.png'),
-                  height: h * 0.01,
+              decoration: InputDecoration(
+                hintText: 'Enter your location...',
+                hintStyle: TextStyle(
+                  fontSize: base * 0.034,
+                  color: Color(0xFFA4A4A4),
+                  fontWeight: FontWeight.w400,
+                  fontFamily: 'R',
                 ),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
+                suffixIcon: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Image(
+                    image: AssetImage('assets/images/locationicon.png'),
+                    height: h * 0.008,
+                  ),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: const BorderSide(color: Color(0xFFA4A4A4)),
+                ),
               ),
             ),
           ),

@@ -90,7 +90,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               },
             ),
 
-            SizedBox(height: height * 0.02),
+            SizedBox(height: height * 0.01),
 
             /// 🔹 New Password
             _buildPasswordField(
@@ -104,7 +104,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               },
             ),
 
-            SizedBox(height: height * 0.02),
+            SizedBox(height: height * 0.01),
 
             /// 🔹 Confirm Password
             _buildPasswordField(
@@ -118,7 +118,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               },
             ),
 
-            SizedBox(height: height * 0.04),
+            SizedBox(height: height * 0.03),
 
             /// 🔹 Change Button
             GestureDetector(
@@ -131,7 +131,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 );
               },
               child: Container(
-                height: height * 0.065,
+                height: height * 0.058,
                 width: width * 0.89,
                 decoration: BoxDecoration(
                     color: Colors.black,
@@ -165,30 +165,34 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       String hintText,
       Function onTap,
       ) {
-    return TextFormField(
-      obscureText: obscure,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TextStyle(
-          fontFamily: 'R',
-          fontSize: width * 0.035,
-          fontWeight: FontWeight.w400,
-          color: Color(0xFFA4A4A4),
-        ),
-        suffixIcon: IconButton(
-          onPressed: () => onTap(null),
-          icon: Icon(
-            obscure ? Icons.visibility : Icons.visibility_off,color: Color(0xFFCDCDCD),
-            size: width * 0.06,
+    return SizedBox(
+      height: 45,
+      child: TextFormField(
+        obscureText: obscure,
+        decoration: InputDecoration(
+          hintText: hintText,
+          contentPadding: EdgeInsets.symmetric(vertical: 2,horizontal: 10),
+          hintStyle: TextStyle(
+            fontFamily: 'R',
+            fontSize: width * 0.034,
+            fontWeight: FontWeight.w400,
+            color: Color(0xFFA4A4A4),
           ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide(color: Color(0xFFCDCDCD)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide(color: Color(0xFFCDCDCD)),
+          suffixIcon: IconButton(
+            onPressed: () => onTap(null),
+            icon: Icon(
+              obscure ? Icons.visibility : Icons.visibility_off,color: Color(0xFFCDCDCD),
+              size: width * 0.06,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide(color: Color(0xFFCDCDCD)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+            borderSide: BorderSide(color: Color(0xFFCDCDCD)),
+          ),
         ),
       ),
     );

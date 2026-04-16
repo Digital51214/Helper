@@ -44,7 +44,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                 width: width * 0.5,
               ),
 
-              SizedBox(height: height * 0.03),
+              SizedBox(height: height * 0.05),
 
               Row(
                 children: [
@@ -53,13 +53,13 @@ class _ChangePasswordState extends State<ChangePassword> {
                     style: TextStyle(
                       fontFamily: 'B',
                       fontWeight: FontWeight.w700,
-                      fontSize: width * 0.06,
+                      fontSize: width * 0.054,
                     ),
                   ),
                 ],
               ),
 
-              SizedBox(height: height * 0.02),
+              SizedBox(height: height * 0.025),
 
               CustomTextformField(
                 obsecureText: _obsecurePassword,
@@ -81,7 +81,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                 keyBoardType: TextInputType.visiblePassword,
               ),
 
-              SizedBox(height: height * 0.02),
+              SizedBox(height: height * 0.01),
 
               CustomTextformField(
                 obsecureText: _obscureConfirmPassword,

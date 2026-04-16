@@ -52,18 +52,18 @@ class _MyjobsState extends State<Myjobs> {
                   children: [
                     // 🔹 First Job Card
                     Container(
-                      height: h * 0.225,
+                      height: h*0.225,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFEAF4F6),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFFCDCDCD)),
+                          color: Color(0xFFEAF4F6),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Color(0xFFCDCDCD))
                       ),
                       child: Row(
                         children: [
                           Container(
-                            height: h * 0.215,
+                            height: h*0.215,
                             width: w * 0.02,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: Color(0xFF2A8DA7),
                               borderRadius: BorderRadius.only(
                                 bottomLeft: Radius.circular(18),
@@ -71,21 +71,28 @@ class _MyjobsState extends State<Myjobs> {
                               ),
                             ),
                           ),
+
                           SizedBox(width: w * 0.03),
+
+                          /// 🔥 FIXED PART
                           Expanded(
                             child: Padding(
                               padding: EdgeInsets.only(
-                                  left: w * 0.02, right: w * 0.02, top: h * 0.02),
+                                left: w * 0.02,
+                                right: w * 0.02,
+                                top: h * 0.02,
+                              ),
                               child: Column(
                                 children: [
+                                  /// 🔹 First Row
                                   Row(
                                     crossAxisAlignment:
                                     CrossAxisAlignment.start,
                                     children: [
                                       Container(
-                                        height: base * 0.16,
-                                        width: base * 0.16,
-                                        decoration: const BoxDecoration(
+                                        height: base * 0.15,
+                                        width: base * 0.15,
+                                        decoration: BoxDecoration(
                                           color: Colors.white,
                                           shape: BoxShape.circle,
                                         ),
@@ -98,7 +105,9 @@ class _MyjobsState extends State<Myjobs> {
                                           ),
                                         ),
                                       ),
+
                                       SizedBox(width: w * 0.03),
+
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
@@ -107,31 +116,42 @@ class _MyjobsState extends State<Myjobs> {
                                             Text(
                                               'Shopping Delivery',
                                               style: TextStyle(
-                                                fontSize: base * 0.045,
+                                                fontSize: base * 0.038,
                                                 fontFamily: 'SB',
-                                                fontWeight: FontWeight.w600,
+                                                fontWeight:
+                                                FontWeight.w600,
                                               ),
                                             ),
+
                                             SizedBox(height: h * 0.005),
+
                                             Row(
                                               children: [
                                                 Icon(
-                                                  Icons.location_on_rounded,
-                                                  color: const Color(0xFF959595),
+                                                  Icons
+                                                      .location_on_rounded,
+                                                  color: Color(
+                                                    0xFF959595,
+                                                  ),
                                                   size: base * 0.045,
                                                 ),
-                                                SizedBox(width: w * 0.01),
+                                                SizedBox(
+                                                  width: w * 0.01,
+                                                ),
                                                 Expanded(
                                                   child: Text(
                                                     'Road123, colony Z',
                                                     style: TextStyle(
-                                                      fontSize: base * 0.035,
+                                                      fontSize:
+                                                      base * 0.028,
                                                       fontFamily: 'R',
                                                       fontWeight:
-                                                      FontWeight.w400,
+                                                      FontWeight
+                                                          .w400,
                                                     ),
                                                     overflow:
-                                                    TextOverflow.ellipsis,
+                                                    TextOverflow
+                                                        .ellipsis,
                                                   ),
                                                 ),
                                               ],
@@ -141,47 +161,59 @@ class _MyjobsState extends State<Myjobs> {
                                       ),
                                     ],
                                   ),
-                                  SizedBox(height: h * 0.02),
+
+                                  SizedBox(height: h * 0.018),
+
+                                  /// 🔹 Second Row
                                   Row(
                                     children: [
-                                      Image.asset(
-                                        'assets/images/home5.png',
-                                        height: base * 0.08,
-                                        width: base * 0.08,
+                                      Image(
+                                        image: AssetImage(
+                                          'assets/images/home5.png',
+                                        ),
+                                        height: base * 0.05,
+                                        width: base * 0.05,
                                       ),
+
                                       SizedBox(width: w * 0.005),
+
                                       Text(
                                         '12 min ago',
                                         style: TextStyle(
-                                          fontSize: base * 0.03,
+                                          fontSize: base * 0.02,
                                           fontFamily: 'R',
                                           fontWeight: FontWeight.w400,
                                         ),
                                       ),
-                                      SizedBox(width: w * 0.03),
-                                      Image.asset(
-                                        'assets/images/home4.png',
-                                        height: base * 0.055,
-                                        width: base * 0.055,
+
+                                      SizedBox(width: w * 0.032),
+
+                                      Image(
+                                        image: AssetImage(
+                                          'assets/images/home4.png',
+                                        ),
+                                        height: base * 0.05,
+                                        width: base * 0.05,
                                       ),
+
                                       SizedBox(width: w * 0.01),
+
                                       Text(
                                         '50k + Applied',
                                         style: TextStyle(
-                                          fontSize: base * 0.03,
+                                          fontSize: base * 0.02,
                                           fontFamily: 'R',
                                           fontWeight: FontWeight.w400,
                                         ),
                                       ),
-                                      const Spacer(),
+                                      Spacer(),
                                       Container(
-                                        height: h * 0.04,
-                                        width: w * 0.2,
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFD7EBDC),
+                                          color: Color(0xFFD7EBDC),
                                           borderRadius:
-                                          BorderRadius.circular(12),
+                                          BorderRadius.circular(7),
                                         ),
+                                        padding: EdgeInsets.symmetric(vertical:w * 0.01,horizontal: w*0.03),
                                         child: Row(
                                           mainAxisAlignment:
                                           MainAxisAlignment.center,
@@ -189,14 +221,15 @@ class _MyjobsState extends State<Myjobs> {
                                             Icon(
                                               Icons.bolt,
                                               size: base * 0.055,
-                                              color: const Color(0xFFEFB32C),
+                                              color: Color(0xFFEFB32C),
                                             ),
                                             Text(
                                               'Active',
                                               style: TextStyle(
-                                                fontWeight: FontWeight.w500,
+                                                fontWeight:
+                                                FontWeight.w500,
                                                 fontFamily: 'M',
-                                                fontSize: base * 0.035,
+                                                fontSize: base * 0.03,
                                               ),
                                             ),
                                           ],
@@ -206,26 +239,27 @@ class _MyjobsState extends State<Myjobs> {
                                   ),
                                   SizedBox(height: h * 0.022),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.end,
                                     children: [
                                       Container(
-                                        height: h * 0.04,
-                                        width: w * 0.25,
                                         decoration: BoxDecoration(
                                           borderRadius:
-                                          BorderRadius.circular(8),
+                                          BorderRadius.circular(10),
                                           color: Colors.black,
                                         ),
+                                        padding: EdgeInsets.symmetric(vertical: w*0.02,horizontal: w*0.03),
                                         child: Center(
                                           child: Text(
                                             'See Details',
                                             style: TextStyle(
-                                              color: Colors.white,
                                               fontFamily: 'B',
                                               fontWeight: FontWeight.w700,
-                                              fontSize: base * 0.037,
+                                              fontSize: base * 0.03,
+                                              color: Colors.white,
                                             ),
                                           ),
+
                                         ),
                                       ),
                                     ],
@@ -237,23 +271,20 @@ class _MyjobsState extends State<Myjobs> {
                         ],
                       ),
                     ),
-
-                    const SizedBox(height: 10),
-
-                    // 🔹 Second Job Card (Same structure)
+                    SizedBox(height: h *0.01),
                     Container(
-                      height: h * 0.225,
+                      height: h*0.225,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFDF7EA),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: const Color(0xFFCDCDCD)),
+                          color: Color(0xFFFDF7EA),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Color(0xFFCDCDCD))
                       ),
                       child: Row(
                         children: [
                           Container(
-                            height: h * 0.215,
+                            height: h*0.215,
                             width: w * 0.02,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               color: Color(0xFFEFB32C),
                               borderRadius: BorderRadius.only(
                                 bottomLeft: Radius.circular(18),
@@ -261,34 +292,43 @@ class _MyjobsState extends State<Myjobs> {
                               ),
                             ),
                           ),
+
                           SizedBox(width: w * 0.03),
+
+                          /// 🔥 FIXED PART
                           Expanded(
                             child: Padding(
                               padding: EdgeInsets.only(
-                                  left: w * 0.02, right: w * 0.02, top: h * 0.02),
+                                left: w * 0.02,
+                                right: w * 0.02,
+                                top: h * 0.02,
+                              ),
                               child: Column(
                                 children: [
+                                  /// 🔹 First Row
                                   Row(
                                     crossAxisAlignment:
                                     CrossAxisAlignment.start,
                                     children: [
                                       Container(
-                                        height: base * 0.16,
-                                        width: base * 0.16,
-                                        decoration: const BoxDecoration(
+                                        height: base * 0.15,
+                                        width: base * 0.15,
+                                        decoration: BoxDecoration(
                                           color: Colors.white,
                                           shape: BoxShape.circle,
                                         ),
                                         child: Center(
                                           child: Image.asset(
-                                            'assets/images/home7.png',
+                                            'assets/images/home6.png',
                                             height: base * 0.1,
                                             width: base * 0.1,
                                             fit: BoxFit.contain,
                                           ),
                                         ),
                                       ),
+
                                       SizedBox(width: w * 0.03),
+
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
@@ -297,31 +337,42 @@ class _MyjobsState extends State<Myjobs> {
                                             Text(
                                               'Shopping Delivery',
                                               style: TextStyle(
-                                                fontSize: base * 0.045,
+                                                fontSize: base * 0.038,
                                                 fontFamily: 'SB',
-                                                fontWeight: FontWeight.w600,
+                                                fontWeight:
+                                                FontWeight.w600,
                                               ),
                                             ),
+
                                             SizedBox(height: h * 0.005),
+
                                             Row(
                                               children: [
                                                 Icon(
-                                                  Icons.location_on_rounded,
-                                                  color: const Color(0xFF959595),
+                                                  Icons
+                                                      .location_on_rounded,
+                                                  color: Color(
+                                                    0xFF959595,
+                                                  ),
                                                   size: base * 0.045,
                                                 ),
-                                                SizedBox(width: w * 0.01),
+                                                SizedBox(
+                                                  width: w * 0.01,
+                                                ),
                                                 Expanded(
                                                   child: Text(
                                                     'Road123, colony Z',
                                                     style: TextStyle(
-                                                      fontSize: base * 0.035,
+                                                      fontSize:
+                                                      base * 0.028,
                                                       fontFamily: 'R',
                                                       fontWeight:
-                                                      FontWeight.w400,
+                                                      FontWeight
+                                                          .w400,
                                                     ),
                                                     overflow:
-                                                    TextOverflow.ellipsis,
+                                                    TextOverflow
+                                                        .ellipsis,
                                                   ),
                                                 ),
                                               ],
@@ -331,54 +382,67 @@ class _MyjobsState extends State<Myjobs> {
                                       ),
                                     ],
                                   ),
-                                  SizedBox(height: h * 0.02),
+
+                                  SizedBox(height: h * 0.018),
+
+                                  /// 🔹 Second Row
                                   Row(
                                     children: [
-                                      Image.asset(
-                                        'assets/images/home5.png',
-                                        height: base * 0.08,
-                                        width: base * 0.08,
+                                      Image(
+                                        image: AssetImage(
+                                          'assets/images/home5.png',
+                                        ),
+                                        height: base * 0.05,
+                                        width: base * 0.05,
                                       ),
+
                                       SizedBox(width: w * 0.005),
+
                                       Text(
                                         '12 min ago',
                                         style: TextStyle(
-                                          fontSize: base * 0.03,
+                                          fontSize: base * 0.02,
                                           fontFamily: 'R',
                                           fontWeight: FontWeight.w400,
                                         ),
                                       ),
-                                      SizedBox(width: w * 0.03),
-                                      Image.asset(
-                                        'assets/images/home4.png',
-                                        height: base * 0.055,
-                                        width: base * 0.055,
+
+                                      SizedBox(width: w * 0.032),
+
+                                      Image(
+                                        image: AssetImage(
+                                          'assets/images/home4.png',
+                                        ),
+                                        height: base * 0.05,
+                                        width: base * 0.05,
                                       ),
+
                                       SizedBox(width: w * 0.01),
+
                                       Text(
                                         '50k + Applied',
                                         style: TextStyle(
-                                          fontSize: base * 0.03,
+                                          fontSize: base * 0.02,
                                           fontFamily: 'R',
                                           fontWeight: FontWeight.w400,
                                         ),
                                       ),
-                                      const Spacer(),
+                                      Spacer(),
                                       Container(
-                                        height: h * 0.04,
-                                        width: w * 0.2,
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFFE2DDD3),
+                                          color: Color(0xFFE2DDD3),
                                           borderRadius:
-                                          BorderRadius.circular(12),
+                                          BorderRadius.circular(7),
                                         ),
+                                        padding: EdgeInsets.symmetric(vertical:w * 0.01,horizontal: w*0.03),
                                         child: Center(
                                           child: Text(
                                             'InActive',
                                             style: TextStyle(
-                                              fontWeight: FontWeight.w500,
+                                              fontWeight:
+                                              FontWeight.w500,
                                               fontFamily: 'M',
-                                              fontSize: base * 0.035,
+                                              fontSize: base * 0.03,
                                             ),
                                           ),
                                         ),
@@ -387,25 +451,27 @@ class _MyjobsState extends State<Myjobs> {
                                   ),
                                   SizedBox(height: h * 0.022),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.end,
                                     children: [
                                       Container(
-                                        height: h * 0.04,
-                                        width: w * 0.25,
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(8),
-                                          color: Colors.black,
+                                          borderRadius:
+                                          BorderRadius.circular(10),
+                                          color: Color(0xFF959595),
                                         ),
+                                        padding: EdgeInsets.symmetric(vertical: w*0.02,horizontal: w*0.03),
                                         child: Center(
                                           child: Text(
                                             'See Details',
                                             style: TextStyle(
-                                              color: Colors.white,
                                               fontFamily: 'B',
                                               fontWeight: FontWeight.w700,
-                                              fontSize: base * 0.037,
+                                              fontSize: base * 0.03,
+                                              color: Colors.white,
                                             ),
                                           ),
+
                                         ),
                                       ),
                                     ],
@@ -417,7 +483,6 @@ class _MyjobsState extends State<Myjobs> {
                         ],
                       ),
                     ),
-
                     // 👇 Responsive Add New Job Button
 
                   ],

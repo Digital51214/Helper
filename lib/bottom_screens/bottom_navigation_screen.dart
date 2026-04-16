@@ -174,7 +174,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
       splashColor: Colors.transparent,
       highlightColor: Colors.transparent,
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 6 * tScale),
+        padding: EdgeInsets.symmetric(vertical: 4 * tScale),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

@@ -1,13 +1,22 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 class ContainerButton extends StatelessWidget {
   final String title;
-  final VoidCallback onPressed;
+  final FutureOr<void> Function()? onPressed;
+  final bool isLoading;
+  final Color backgroundColor;
+  final Color textColor;
+  final Color borderColor;
 
-  ContainerButton({
+  const ContainerButton({
     super.key,
     required this.title,
     required this.onPressed,
+    this.isLoading = false,
+    this.backgroundColor = Colors.black,
+    this.textColor = Colors.white,
+    this.borderColor = Colors.white,
   });
 
   @override
@@ -15,23 +24,38 @@ class ContainerButton extends StatelessWidget {
     final ws = MediaQuery.of(context).size;
 
     return GestureDetector(
-      onTap: onPressed,
+      onTap: (onPressed == null || isLoading)
+          ? null
+          : () async {
+        await onPressed!();
+      },
       child: Container(
-        height: ws.height * 0.065, // 👈 responsive height
+        height: ws.height * 0.058,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: Colors.black,
-          border: Border.all(color: Colors.white),
-          borderRadius: BorderRadius.circular(ws.width * 0.08), // 👈 responsive radius
+          color: (onPressed == null || isLoading)
+              ? Colors.grey
+              : backgroundColor,
+          border: Border.all(color: borderColor),
+          borderRadius: BorderRadius.circular(ws.width * 0.08),
         ),
         child: Center(
-          child: Text(
+          child: isLoading
+              ? SizedBox(
+            height: ws.width * 0.05,
+            width: ws.width * 0.05,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              valueColor: AlwaysStoppedAnimation<Color>(textColor),
+            ),
+          )
+              : Text(
             title,
             style: TextStyle(
               fontWeight: FontWeight.w600,
-              fontFamily: 'SB',
-              color: Colors.white,
-              fontSize: ws.width * 0.045, // 👈 responsive font
+              fontFamily: 'B',
+              color: textColor,
+              fontSize: ws.width * 0.032,
             ),
           ),
         ),
