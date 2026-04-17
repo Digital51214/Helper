@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:helper/Authontication_Services/Authorization_services.login.dart';
 import 'package:helper/auth_screen/Sign_up.dart';
-import 'package:helper/session_manager.dart';
 import 'package:helper/bottom_screens/bottom_navigation_screen.dart';
 import 'package:helper/components/container_button.dart';
 import 'package:helper/components/custom_textformfield.dart';
@@ -24,6 +24,28 @@ class _LoginState extends State<Login> {
 
   final AuthService _authService = AuthService();
 
+  static const String _isLoggedInKey = 'is_logged_in';
+  static const String _userIdKey = 'user_id';
+  static const String _userEmailKey = 'user_email';
+
+  Future<void> _saveLoginSession({
+    required int userId,
+    required String email,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setBool(_isLoggedInKey, true);
+    await prefs.setInt(_userIdKey, userId);
+    await prefs.setString(_userEmailKey, email);
+
+    print('===== SESSION SAVED FROM LOGIN =====');
+    print('USER ID: $userId');
+    print('EMAIL: $email');
+    print('IS LOGGED IN: ${prefs.getBool(_isLoggedInKey)}');
+    print('SAVED USER ID: ${prefs.getInt(_userIdKey)}');
+    print('SAVED EMAIL: ${prefs.getString(_userEmailKey)}');
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -32,12 +54,16 @@ class _LoginState extends State<Login> {
   }
 
   Future<void> _login() async {
-    final email = _emailController.text.trim();
-    final password = _password.text.trim();
+    if (_isLoading) return;
 
-    print('===== BUTTON PRESSED =====');
+    FocusScope.of(context).unfocus();
+
+    final email = _emailController.text.trim().toLowerCase();
+    final password = _password.text;
+
+    print('===== LOGIN BUTTON PRESSED =====');
     print('Entered Email: $email');
-    print('Entered Password: $password');
+    print('Entered Password Length: ${password.length}');
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -57,23 +83,53 @@ class _LoginState extends State<Login> {
       password: password,
     );
 
+    if (!mounted) return;
+
     setState(() {
       _isLoading = false;
     });
 
-    print('===== FINAL RESULT =====');
+    print('===== LOGIN FINAL RESULT =====');
     print(result);
 
     if (result['success'] == true) {
+      final int userId = result['user_id'] is int
+          ? result['user_id']
+          : int.tryParse(result['user_id']?.toString() ?? '0') ?? 0;
+
+      final String savedEmail =
+      (result['email']?.toString().isNotEmpty ?? false)
+          ? result['email'].toString()
+          : email;
+
+      print('===== FINAL USER ID FROM LOGIN SCREEN =====');
+      print(userId);
+      print(savedEmail);
+
+      if (userId == 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login successful but user id not found from API'),
+          ),
+        );
+        return;
+      }
+
+      await _saveLoginSession(
+        userId: userId,
+        email: savedEmail,
+      );
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result['message'] ?? 'Login successful'),
         ),
       );
-      await SessionManager.saveLoginSession();
 
       _emailController.clear();
       _password.clear();
+
+      if (!mounted) return;
 
       Navigator.pushReplacement(
         context,
@@ -115,13 +171,12 @@ class _LoginState extends State<Login> {
                     children: [
                       Image(
                         image: const AssetImage('assets/images/signup1.png'),
-                        height: h * 0.17,
-                        width: h * 0.17,
+                        height: h * 0.16,
+                        width: h * 0.16,
                       ),
                     ],
                   ),
-                  SizedBox(height: h * 0.03),
-
+                  SizedBox(height: h * 0.0325),
                   Padding(
                     padding: EdgeInsets.only(left: w * 0.02),
                     child: Row(
@@ -130,13 +185,12 @@ class _LoginState extends State<Login> {
                           'Sign In',
                           style: TextStyle(
                             fontFamily: 'B',
-                            fontSize: baseSize * 0.06,
+                            fontSize: baseSize * 0.055,
                           ),
                         ),
                       ],
                     ),
                   ),
-
                   Padding(
                     padding: EdgeInsets.only(left: w * 0.02, top: h * 0.001),
                     child: Row(
@@ -145,23 +199,19 @@ class _LoginState extends State<Login> {
                           'Welcome Back! Enter Your Account Details',
                           style: TextStyle(
                             fontFamily: 'R',
-                            fontSize: baseSize * 0.03,
+                            fontSize: baseSize * 0.028,
                           ),
                         ),
                       ],
                     ),
                   ),
-
                   SizedBox(height: h * 0.02),
-
                   CustomTextformField(
                     title: 'EmailAddress',
                     controller: _emailController,
                     keyBoardType: TextInputType.emailAddress,
                   ),
-
-                  SizedBox(height: h * 0.01),
-
+                  SizedBox(height: h * 0.009),
                   CustomTextformField(
                     obsecureText: _obsecureText,
                     sufixIcon: IconButton(
@@ -179,9 +229,7 @@ class _LoginState extends State<Login> {
                     controller: _password,
                     keyBoardType: TextInputType.visiblePassword,
                   ),
-
                   SizedBox(height: h * 0.013),
-
                   Row(
                     children: [
                       Checkbox(
@@ -191,7 +239,7 @@ class _LoginState extends State<Login> {
                         value: checked,
                         onChanged: (value) {
                           setState(() {
-                            checked = value!;
+                            checked = value ?? false;
                           });
                         },
                         fillColor: MaterialStateProperty.resolveWith(
@@ -216,7 +264,7 @@ class _LoginState extends State<Login> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ForgetPassword(),
+                              builder: (context) => const ForgetPassword(),
                             ),
                           );
                         },
@@ -234,19 +282,13 @@ class _LoginState extends State<Login> {
                       ),
                     ],
                   ),
-
                   SizedBox(height: h * 0.03),
-
                   ContainerButton(
                     title: _isLoading ? 'Please Wait...' : 'Sign In',
-                     onPressed: _isLoading ? null : _login,
-                    // onPressed: (){
-                    //   Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>BottomNavigationScreen()),
-                    //       (Route<dynamic>route)=>false);
-                    // },
+                    isLoading: _isLoading,
+                    onPressed: _isLoading ? null : _login,
                   ),
-                  SizedBox(height: h * 0.02),
-
+                  SizedBox(height: h * 0.018),
                   Row(
                     children: [
                       Expanded(
@@ -273,9 +315,7 @@ class _LoginState extends State<Login> {
                       ),
                     ],
                   ),
-
-                  SizedBox(height: h * 0.015),
-
+                  SizedBox(height: h * 0.013),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -289,13 +329,13 @@ class _LoginState extends State<Login> {
                           ),
                         ),
                         child: CircleAvatar(
-                          radius: w * 0.05,
+                          radius: w * 0.048,
                           backgroundImage: const AssetImage(
                             'assets/images/signup2.png',
                           ),
                         ),
                       ),
-                      SizedBox(width: w * 0.05),
+                      SizedBox(width: w * 0.04),
                       Container(
                         padding: EdgeInsets.all(w * 0.012),
                         decoration: BoxDecoration(
@@ -306,7 +346,7 @@ class _LoginState extends State<Login> {
                           ),
                         ),
                         child: CircleAvatar(
-                          radius: w * 0.05,
+                          radius: w * 0.048,
                           backgroundColor: Colors.white,
                           backgroundImage: const AssetImage(
                             'assets/images/signup3.png',
@@ -315,9 +355,7 @@ class _LoginState extends State<Login> {
                       ),
                     ],
                   ),
-
                   SizedBox(height: h * 0.1),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -353,7 +391,6 @@ class _LoginState extends State<Login> {
               ),
             ),
           ),
-
           if (_isLoading)
             Container(
               color: Colors.black.withOpacity(0.2),

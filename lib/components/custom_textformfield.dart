@@ -26,10 +26,10 @@ class CustomTextformField extends StatelessWidget {
         obscureText: obsecureText,
         controller: controller,
         cursorColor: Colors.grey,
-        style: TextStyle(color: Colors.grey),
+        style: TextStyle(color: Colors.black,fontFamily: "R"),
         decoration: InputDecoration(
           hintText: title,
-          hintStyle: TextStyle(color: Colors.grey,fontSize: 14),
+          hintStyle: TextStyle(color: Colors.grey,fontSize: 14 ,fontFamily: "R"),
           suffixIcon: sufixIcon,
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30),

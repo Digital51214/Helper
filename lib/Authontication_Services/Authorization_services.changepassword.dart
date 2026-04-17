@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 
-class ResetPasswordService {
-  static const String resetPasswordUrl =
-      'https://helpr.digital/api/reset-password';
+class ChangePasswordService {
+  static const String changePasswordUrl =
+      'https://helpr.digital/api/user/change-password';
 
   bool _parseSuccess(dynamic value, int statusCode) {
     if (value is bool) return value;
@@ -23,27 +23,25 @@ class ResetPasswordService {
     return statusCode >= 200 && statusCode < 300;
   }
 
-  Future<Map<String, dynamic>> resetPassword({
+  Future<Map<String, dynamic>> changePassword({
     required int userId,
-    required String otp,
-    required String password,
+    required String currentPassword,
+    required String newPassword,
   }) async {
     try {
-      final sanitizedOtp = otp.replaceAll(RegExp(r'[^0-9]'), '');
-
       final body = {
         'user_id': userId,
-        'otp': sanitizedOtp,
-        'password': password,
+        'current_password': currentPassword,
+        'new_password': newPassword,
       };
 
-      print('===== RESET PASSWORD API HIT =====');
-      print('URL: $resetPasswordUrl');
+      print('===== CHANGE PASSWORD API HIT =====');
+      print('URL: $changePasswordUrl');
       print('REQUEST BODY: ${jsonEncode(body)}');
 
       final response = await http
           .post(
-        Uri.parse(resetPasswordUrl),
+        Uri.parse(changePasswordUrl),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -52,7 +50,7 @@ class ResetPasswordService {
       )
           .timeout(const Duration(seconds: 20));
 
-      print('===== RESET PASSWORD RESPONSE =====');
+      print('===== CHANGE PASSWORD RESPONSE =====');
       print('STATUS CODE: ${response.statusCode}');
       print('BODY: ${response.body}');
 
@@ -77,22 +75,32 @@ class ResetPasswordService {
         'message': decoded['message']?.toString() ?? 'Something went wrong',
         'data': decoded,
       };
-    } on SocketException {
+    } on SocketException catch (e) {
+      print('===== CHANGE PASSWORD SOCKET ERROR =====');
+      print(e.toString());
+
       return {
         'success': false,
         'message': 'Network error. Please check your internet connection.',
       };
     } on TimeoutException {
+      print('===== CHANGE PASSWORD TIMEOUT ERROR =====');
+
       return {
         'success': false,
         'message': 'Server is taking too long to respond. Please try again.',
       };
     } on FormatException {
+      print('===== CHANGE PASSWORD FORMAT ERROR =====');
+
       return {
         'success': false,
         'message': 'Invalid server response.',
       };
     } catch (e) {
+      print('===== CHANGE PASSWORD ERROR =====');
+      print(e.toString());
+
       return {
         'success': false,
         'message': 'Something went wrong: $e',

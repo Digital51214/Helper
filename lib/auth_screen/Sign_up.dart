@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:helper/Authontication_Services/Authorization_services.signup.dart';
 import 'package:helper/auth_screen/login.dart';
+import 'package:helper/bottom_screens/bottom_navigation_screen.dart';
 import 'package:helper/session_manager.dart';
 import 'package:helper/auth_screen/privacy_policy.dart';
 import 'package:helper/auth_screen/termscondition.dart';
 import 'package:helper/components/custom_textformfield.dart';
-import '../components/container_button.dart';
+import 'package:helper/components/container_button.dart';
+// upar wali import line ko apni actual file path ke mutabiq adjust kar lena
 
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
@@ -46,23 +48,34 @@ class _SignUpState extends State<SignUp> {
     final password = _passwordController.text.trim();
     final confirmPassword = _confirmPasswordController.text.trim();
 
-    print('===== SIGNUP BUTTON PRESSED =====');
-    print('USERNAME: $username');
-    print('EMAIL: $email');
-    print('PHONE: $phone');
-    print('PASSWORD: $password');
-    print('CONFIRM PASSWORD: $confirmPassword');
-    print('CHECKED TERMS: $checked');
-
     if (username.isEmpty ||
         email.isEmpty ||
         phone.isEmpty ||
         password.isEmpty ||
         confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill all fields'),
-        ),
+        const SnackBar(content: Text('Please fill all fields')),
+      );
+      return;
+    }
+
+    if (!email.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid email')),
+      );
+      return;
+    }
+
+    if (phone.length < 11) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid phone number')),
+      );
+      return;
+    }
+
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password must be at least 6 characters')),
       );
       return;
     }
@@ -102,15 +115,13 @@ class _SignUpState extends State<SignUp> {
       _isLoading = false;
     });
 
-    print('===== FINAL SIGNUP RESULT =====');
-    print(result);
-
     if (result['success'] == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(result['message'] ?? 'Signup successful'),
         ),
       );
+
       await SessionManager.saveLoginSession();
 
       _userNameController.clear();
@@ -119,11 +130,12 @@ class _SignUpState extends State<SignUp> {
       _passwordController.clear();
       _confirmPasswordController.clear();
 
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => const Login(),
+          builder: (context) => const BottomNavigationScreen(),
         ),
+            (route) => false,
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -164,26 +176,25 @@ class _SignUpState extends State<SignUp> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Image(
-                              image:
-                              const AssetImage('assets/images/signup1.png'),
-                              height: h * 0.17,
-                              width: h * 0.17,
+                              image: const AssetImage('assets/images/signup1.png'),
+                              height: h * 0.16,
+                              width: h * 0.16,
                             ),
                           ],
                         ),
                       ),
-                      SizedBox(height: h * 0.03),
+                      SizedBox(height: h * 0.0325),
                       Text(
                         'Sign Up',
                         style: TextStyle(
-                          fontSize: baseSize * 0.06,
+                          fontSize: baseSize * 0.055,
                           fontFamily: "B",
                         ),
                       ),
-                      SizedBox(height: h * 0.001),
+                      SizedBox(height: h * 0.0009),
                       Text(
                         'Sign Up using your details',
-                        style: TextStyle(fontSize: baseSize * 0.035),
+                        style: TextStyle(fontSize: baseSize * 0.032),
                       ),
                       SizedBox(height: h * 0.02),
 
@@ -192,21 +203,21 @@ class _SignUpState extends State<SignUp> {
                         controller: _userNameController,
                         keyBoardType: TextInputType.text,
                       ),
-                      SizedBox(height: h * 0.01),
+                      SizedBox(height: h * 0.009),
 
                       CustomTextformField(
                         title: 'Email Address',
                         controller: _emailController,
                         keyBoardType: TextInputType.emailAddress,
                       ),
-                      SizedBox(height: h * 0.01),
+                      SizedBox(height: h * 0.009),
 
                       CustomTextformField(
                         title: 'Phone Number',
                         controller: _phoneController,
                         keyBoardType: TextInputType.phone,
                       ),
-                      SizedBox(height: h * 0.01),
+                      SizedBox(height: h * 0.009),
 
                       CustomTextformField(
                         sufixIcon: IconButton(
@@ -227,7 +238,7 @@ class _SignUpState extends State<SignUp> {
                         controller: _passwordController,
                         keyBoardType: TextInputType.text,
                       ),
-                      SizedBox(height: h * 0.01),
+                      SizedBox(height: h * 0.009),
 
                       CustomTextformField(
                         sufixIcon: IconButton(
@@ -249,7 +260,7 @@ class _SignUpState extends State<SignUp> {
                         controller: _confirmPasswordController,
                         keyBoardType: TextInputType.text,
                       ),
-                      SizedBox(height: h * 0.01),
+                      SizedBox(height: h * 0.009),
 
                       Row(
                         children: [
@@ -261,7 +272,7 @@ class _SignUpState extends State<SignUp> {
                             value: checked,
                             onChanged: (value) {
                               setState(() {
-                                checked = value!;
+                                checked = value ?? false;
                               });
                             },
                             fillColor: MaterialStateProperty.resolveWith(
@@ -271,62 +282,70 @@ class _SignUpState extends State<SignUp> {
                             ),
                             checkColor: Colors.white,
                           ),
-                          Text(
-                            "I agree with all ",
-                            style: TextStyle(
-                              fontSize: baseSize * 0.022,
-                              fontFamily: 'R',
-                              color: Colors.black,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => Termscondition(),
+                          Expanded(
+                            child: Wrap(
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  "I agree with all ",
+                                  style: TextStyle(
+                                    fontSize: baseSize * 0.022,
+                                    fontFamily: 'R',
+                                    color: Colors.black,
+                                  ),
                                 ),
-                              );
-                            },
-                            child: Text(
-                              "Terms & Conditions",
-                              style: TextStyle(
-                                fontSize: baseSize * 0.02,
-                                fontFamily: 'B',
-                                fontWeight: FontWeight.w700,
-                                decoration: TextDecoration.underline,
-                                decorationColor: Colors.black,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            " and",
-                            style: TextStyle(
-                              fontSize: baseSize * 0.024,
-                              fontFamily: 'R',
-                              color: Colors.black,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PrivacyPolicy(),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            Termscondition(),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    "Terms & Conditions",
+                                    style: TextStyle(
+                                      fontSize: baseSize * 0.022,
+                                      fontFamily: 'B',
+                                      fontWeight: FontWeight.w700,
+                                      decoration: TextDecoration.underline,
+                                      decorationColor: Colors.black,
+                                      color: Colors.black,
+                                    ),
+                                  ),
                                 ),
-                              );
-                            },
-                            child: Text(
-                              " Privacy Policy",
-                              style: TextStyle(
-                                fontSize: baseSize * 0.025,
-                                fontFamily: 'B',
-                                fontWeight: FontWeight.w700,
-                                decoration: TextDecoration.underline,
-                                decorationColor: Colors.black,
-                                color: Colors.black,
-                              ),
+                                Text(
+                                  " and ",
+                                  style: TextStyle(
+                                    fontSize: baseSize * 0.022,
+                                    fontFamily: 'R',
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PrivacyPolicy(),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    "Privacy Policy",
+                                    style: TextStyle(
+                                      fontSize: baseSize * 0.022,
+                                      fontFamily: 'B',
+                                      fontWeight: FontWeight.w700,
+                                      decoration: TextDecoration.underline,
+                                      decorationColor: Colors.black,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -337,10 +356,10 @@ class _SignUpState extends State<SignUp> {
                       ContainerButton(
                         title: _isLoading ? 'Please Wait...' : 'Sign Up',
                         isLoading: _isLoading,
-                        onPressed: _signUp,
+                        onPressed: _isLoading ? null : _signUp,
                       ),
 
-                      SizedBox(height: h * 0.02),
+                      SizedBox(height: h * 0.018),
 
                       Row(
                         children: [
@@ -361,7 +380,7 @@ class _SignUpState extends State<SignUp> {
                             ),
                           ),
                           Expanded(
-                            child: Divider(
+                            child: const Divider(
                               thickness: 1.25,
                               color: Colors.grey,
                             ),
@@ -369,7 +388,7 @@ class _SignUpState extends State<SignUp> {
                         ],
                       ),
 
-                      SizedBox(height: h * 0.012),
+                      SizedBox(height: h * 0.009),
 
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -384,14 +403,14 @@ class _SignUpState extends State<SignUp> {
                               ),
                             ),
                             child: CircleAvatar(
-                              radius: w * 0.05,
+                              radius: w * 0.048,
                               backgroundColor: Colors.white,
                               backgroundImage: const AssetImage(
                                 'assets/images/signup2.png',
                               ),
                             ),
                           ),
-                          SizedBox(width: w * 0.05),
+                          SizedBox(width: w * 0.045),
                           Container(
                             padding: EdgeInsets.all(w * 0.012),
                             decoration: BoxDecoration(
@@ -402,7 +421,7 @@ class _SignUpState extends State<SignUp> {
                               ),
                             ),
                             child: CircleAvatar(
-                              radius: w * 0.05,
+                              radius: w * 0.048,
                               backgroundColor: Colors.white,
                               backgroundImage: const AssetImage(
                                 'assets/images/signup3.png',
@@ -412,7 +431,7 @@ class _SignUpState extends State<SignUp> {
                         ],
                       ),
 
-                      SizedBox(height: h * 0.05),
+                      SizedBox(height: h * 0.02),
 
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,

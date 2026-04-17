@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:helper/Authontication_Services/Authorization_services.resetpassword.dart';
-import 'package:helper/auth_screen/login.dart';
+import 'package:helper/change_password.dart';
 import 'package:helper/components/container_button.dart';
-import 'package:helper/components/custom_textformfield.dart';
 import 'package:helper/components/custom_widgets.dart';
 
 class VerifyScreen extends StatefulWidget {
@@ -28,16 +26,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
   final List<FocusNode> _focusNodes =
   List.generate(6, (index) => FocusNode());
 
-  final TextEditingController _newPasswordController =
-  TextEditingController();
-  final TextEditingController _confirmPasswordController =
-  TextEditingController();
-
-  bool _obsecureText = true;
-  bool _obsecureConfirmPassword = true;
   bool _isLoading = false;
-
-  final ResetPasswordService _resetPasswordService = ResetPasswordService();
 
   @override
   void initState() {
@@ -56,54 +45,26 @@ class _VerifyScreenState extends State<VerifyScreen> {
     for (final focusNode in _focusNodes) {
       focusNode.dispose();
     }
-    _newPasswordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _verifyOtp() async {
-    final otp = _controllers.map((e) => e.text).join();
-    final newPassword = _newPasswordController.text.trim();
-    final confirmPassword = _confirmPasswordController.text.trim();
+  Future<void> _goToChangePassword() async {
+    final otp = _controllers.map((e) => e.text).join().trim();
 
     print('===== VERIFY BUTTON PRESSED =====');
     print('USER ID: ${widget.userId}');
     print('OTP: $otp');
-    print('NEW PASSWORD: $newPassword');
-    print('CONFIRM PASSWORD: $confirmPassword');
 
     if (widget.userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('User ID not found'),
-        ),
+        const SnackBar(content: Text('User ID not found')),
       );
       return;
     }
 
     if (otp.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter complete 6 digit OTP'),
-        ),
-      );
-      return;
-    }
-
-    if (newPassword.isEmpty || confirmPassword.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter new password and confirm password'),
-        ),
-      );
-      return;
-    }
-
-    if (newPassword != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('New Password and Confirm Password do not match'),
-        ),
+        const SnackBar(content: Text('Please enter complete 6 digit OTP')),
       );
       return;
     }
@@ -112,11 +73,7 @@ class _VerifyScreenState extends State<VerifyScreen> {
       _isLoading = true;
     });
 
-    final result = await _resetPasswordService.resetPassword(
-      userId: widget.userId!,
-      otp: otp,
-      password: newPassword,
-    );
+    await Future.delayed(const Duration(milliseconds: 300));
 
     if (!mounted) return;
 
@@ -124,32 +81,15 @@ class _VerifyScreenState extends State<VerifyScreen> {
       _isLoading = false;
     });
 
-    print('===== FINAL VERIFY RESULT =====');
-    print(result);
-
-    if (result['success'] == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message'] ?? 'Password reset successfully'),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChangePassword(
+          userId: widget.userId!,
+          otp: otp,
         ),
-      );
-
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const Login(),
-        ),
-            (route) => false,
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result['message'] ?? 'Invalid OTP. Please verify and try again.',
-          ),
-        ),
-      );
-    }
+      ),
+    );
   }
 
   @override
@@ -279,57 +219,12 @@ class _VerifyScreenState extends State<VerifyScreen> {
                     }),
                   ),
 
-                  SizedBox(height: height * 0.03),
-
-                  CustomTextformField(
-                    title: 'New Password',
-                    controller: _newPasswordController,
-                    obsecureText: _obsecureText,
-                    keyBoardType: TextInputType.visiblePassword,
-                    sufixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _obsecureText = !_obsecureText;
-                        });
-                      },
-                      icon: Icon(
-                        _obsecureText
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        color: const Color(0xFFC6C6C6),
-                      ),
-                    ),
-                  ),
-
-                  SizedBox(height: height * 0.015),
-
-                  CustomTextformField(
-                    title: 'Confirm Password',
-                    controller: _confirmPasswordController,
-                    obsecureText: _obsecureConfirmPassword,
-                    keyBoardType: TextInputType.visiblePassword,
-                    sufixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _obsecureConfirmPassword =
-                          !_obsecureConfirmPassword;
-                        });
-                      },
-                      icon: Icon(
-                        _obsecureConfirmPassword
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        color: const Color(0xFFC6C6C6),
-                      ),
-                    ),
-                  ),
-
                   SizedBox(height: height * 0.04),
 
                   ContainerButton(
                     title: _isLoading ? 'Please Wait...' : 'Verify',
                     isLoading: _isLoading,
-                    onPressed: _verifyOtp,
+                    onPressed: _isLoading ? null : _goToChangePassword,
                   ),
 
                   SizedBox(height: height * 0.02),
