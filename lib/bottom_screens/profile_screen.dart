@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:helper/Authontication_Services/profile_service.dart';
+import 'package:helper/Authontication_Services/session_manager.dart';
+import 'package:helper/Models/profile_model.dart';
 import 'package:helper/auth_screen/login.dart';
 import 'package:helper/bottom_screens/change_password_screen.dart';
 import 'package:helper/bottom_screens/edit_profile_screen.dart';
@@ -14,6 +17,115 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool isToggled = false;
+  bool _isLoading = true;
+
+  int _userId = 0;
+  String _username = '';
+  String _email = '';
+  String _profilePic = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      _userId = await SessionManager.getUserId();
+      _username = await SessionManager.getUserName();
+      _email = await SessionManager.getUserEmail();
+      _profilePic = await SessionManager.getProfilePic();
+
+      print('===== PROFILE SCREEN SESSION DATA =====');
+      print('USER ID: $_userId');
+      print('USERNAME: $_username');
+      print('EMAIL: $_email');
+      print('PROFILE PIC: $_profilePic');
+
+      if (_userId != 0) {
+        final result = await ProfileViewService.fetchProfile(userId: _userId);
+
+        print('===== PROFILE SCREEN API RESULT =====');
+        print(result);
+
+        if (result['success'] == true && result['user'] != null) {
+          final ProfileUserModel user = result['user'];
+
+          _username = user.username;
+          _email = user.email;
+          _profilePic = SessionManager.normalizeProfilePic(user.profilePic);
+          await SessionManager.updateProfileData(
+            username: _username,
+            email: _email,
+            profilePic: _profilePic,
+          );
+        }
+      }
+    } catch (e) {
+      print('===== PROFILE SCREEN LOAD ERROR =====');
+      print(e.toString());
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _openEditProfile() async {
+    final updated = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const EditProfileScreen(),
+      ),
+    );
+
+    if (updated == true) {
+      await _loadProfile();
+    }
+  }
+
+  Future<void> _logout() async {
+    print('===== LOGOUT STARTED =====');
+
+    await SessionManager.clearSession();
+
+    if (!mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const Login(),
+      ),
+          (route) => false,
+    );
+  }
+
+  Widget _buildProfileAvatar(double radius) {
+    if (_profilePic.isNotEmpty) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: Colors.grey.shade200,
+        backgroundImage: NetworkImage(_profilePic),
+        onBackgroundImageError: (_, __) {
+          print('===== PROFILE SCREEN IMAGE LOAD ERROR =====');
+          print('FAILED URL: $_profilePic');
+        },
+      );
+    }
+
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: Colors.grey.shade200,
+      child: const Icon(Icons.person, size: 40, color: Colors.grey),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,8 +134,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final baseSize = MediaQuery.of(context).size.shortestSide;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0FFEDECEC),
-      body: Column(
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
         children: [
           SizedBox(height: h * 0.1),
           Padding(
@@ -42,12 +156,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           SizedBox(height: h * 0.02),
-
-          /// FULL BACKGROUND CONTAINER
           Expanded(
             child: Container(
               width: double.infinity,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(25),
@@ -55,19 +167,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               child: SingleChildScrollView(
-                physics:BouncingScrollPhysics(),
+                physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
                     SizedBox(height: h * 0.03),
-                    CircleAvatar(
-                      radius: w * 0.13,
-                      backgroundImage: const AssetImage(
-                        'assets/images/chatscreen4.png',
-                      ),
-                    ),
+                    _buildProfileAvatar(w * 0.13),
                     SizedBox(height: h * 0.012),
                     Text(
-                      'Henry wick',
+                      _username.isNotEmpty ? _username : 'No Username',
                       style: TextStyle(
                         fontFamily: 'SB',
                         fontSize: baseSize * 0.05,
@@ -76,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     SizedBox(height: h * 0.0042),
                     Text(
-                      'Exmple@mail.com',
+                      _email.isNotEmpty ? _email : 'No Email',
                       style: TextStyle(
                         fontFamily: 'SB',
                         fontWeight: FontWeight.w700,
@@ -85,17 +192,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     SizedBox(height: h * 0.012),
-
-                    /// Edit Profile
                     GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EditProfileScreen(),
-                          ),
-                        );
-                      },
+                      onTap: _openEditProfile,
                       child: Container(
                         height: h * 0.055,
                         width: w * 0.42,
@@ -127,10 +225,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                     ),
-
                     SizedBox(height: h * 0.027),
-
-                    /// Change Password (Tap Fixed)
                     _settingTile(
                       context,
                       imagePath: 'assets/images/verify.png',
@@ -140,16 +235,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ChangePasswordScreen(),
+                            builder: (context) => const ChangePasswordScreen(),
                           ),
                         );
                       },
                     ),
-
-
                     SizedBox(height: h * 0.01),
-
-                    /// Location Toggle
                     Container(
                       height: h * 0.07,
                       width: w * 0.9,
@@ -216,21 +307,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                     ),
-
                     SizedBox(height: h * 0.01),
                     _settingTile(
                       context,
                       imagePath: 'assets/images/wallet.png',
                       title: 'Wallet',
                       baseSize: baseSize,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChangePasswordScreen(),
-                          ),
-                        );
-                      },
+                      onTap: () {},
                     ),
                     SizedBox(height: h * 0.01),
                     _settingTile(
@@ -238,18 +321,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       imagePath: 'assets/images/worker.png',
                       title: 'Switch to Worker',
                       baseSize: baseSize,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChangePasswordScreen(),
-                          ),
-                        );
-                      },
+                      onTap: () {},
                     ),
                     SizedBox(height: h * 0.02),
-
-                    /// Logout
                     GestureDetector(
                       onTap: () {
                         showDialog(
@@ -269,7 +343,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   'Are you sure you want to logout?',
                                 ),
                                 actionsAlignment:
-                                    MainAxisAlignment.spaceBetween,
+                                MainAxisAlignment.spaceBetween,
                                 actions: [
                                   ElevatedButton(
                                     onPressed: () {
@@ -283,13 +357,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ),
                                   ),
                                   ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => Login(),
-                                        ),
-                                      );
+                                    onPressed: () async {
+                                      Navigator.pop(context);
+                                      await _logout();
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFF692226),
@@ -340,26 +410,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(height: h*0.2)
+                    SizedBox(height: h * 0.2),
                   ],
                 ),
-
               ),
             ),
           ),
         ],
       ),
-
     );
   }
 
-  /// IMAGE-ONLY CIRCLE
   Widget _iconCircle(String imagePath, double h) {
     return Container(
       height: h * 0.045,
       width: h * 0.045,
       decoration: BoxDecoration(
-        border: Border.all(color: Color(0xFF2A8DA7)),
+        border: Border.all(color: const Color(0xFF2A8DA7)),
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -374,19 +441,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _settingTile(
-    BuildContext context, {
-    required String imagePath,
-    required String title,
-    required double baseSize,
-    required VoidCallback onTap,
-  }) {
+      BuildContext context, {
+        required String imagePath,
+        required String title,
+        required double baseSize,
+        required VoidCallback onTap,
+      }) {
     final h = MediaQuery.of(context).size.height;
     final w = MediaQuery.of(context).size.width;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: h*0.072,
+        height: h * 0.072,
         width: w * 0.9,
         decoration: BoxDecoration(
           border: Border.all(color: const Color(0xFF1313131A)),
@@ -418,6 +485,5 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
-
   }
 }

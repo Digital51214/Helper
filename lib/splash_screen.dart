@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:helper/auth_screen/login.dart';
 import 'package:helper/bottom_screens/bottom_navigation_screen.dart';
-import 'package:helper/session_manager.dart';
+import 'package:helper/Authontication_Services/session_manager.dart';
 import 'package:helper/welcome_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -20,13 +20,29 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkSession() async {
-    await Future.delayed(const Duration(seconds: 5));
+    print('===== SPLASH SESSION CHECK STARTED =====');
+
+    await Future.delayed(const Duration(seconds: 3));
 
     final bool isLoggedIn = await SessionManager.isLoggedIn();
+    final int userId = await SessionManager.getUserId();
+    final String email = await SessionManager.getUserEmail();
+    final String username = await SessionManager.getUserName();
+    final String profilePic = await SessionManager.getProfilePic();
+
+    print('===== SPLASH SESSION DATA =====');
+    print('IS LOGGED IN: $isLoggedIn');
+    print('USER ID     : $userId');
+    print('EMAIL       : $email');
+    print('USERNAME    : $username');
+    print('PROFILE PIC : $profilePic');
 
     if (!mounted) return;
 
-    if (isLoggedIn) {
+    if (isLoggedIn && userId != 0) {
+      print('===== SPLASH NAVIGATION =====');
+      print('GO TO: BottomNavigationScreen');
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -34,11 +50,14 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
       );
     } else {
+      print('===== SPLASH NAVIGATION =====');
+      print('GO TO: WelcomeScreen');
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => WelcomeScreen(),
-          // Agar tum chaho to yahan Login() bhi kar sakte ho
+          // Agar direct login screen chahiye to isay use karo:
           // builder: (context) => const Login(),
         ),
       );

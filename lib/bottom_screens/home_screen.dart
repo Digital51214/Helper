@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:helper/Authontication_Services/session_manager.dart';
 import 'package:helper/bottom_screens/postjob_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -9,6 +10,68 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String _profilePic = '';
+  bool _isProfileLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfilePic();
+  }
+
+  Future<void> _loadProfilePic() async {
+    try {
+      final profilePic = await SessionManager.getProfilePic();
+
+      print('===== HOME SCREEN PROFILE PIC LOAD =====');
+      print('PROFILE PIC: $profilePic');
+
+      if (!mounted) return;
+
+      setState(() {
+        _profilePic = SessionManager.normalizeProfilePic(profilePic);
+        _isProfileLoading = false;
+      });
+    } catch (e) {
+      print('===== HOME SCREEN PROFILE PIC ERROR =====');
+      print(e.toString());
+
+      if (!mounted) return;
+
+      setState(() {
+        _isProfileLoading = false;
+      });
+    }
+  }
+
+  Widget _buildTopProfileAvatar(double radius) {
+    if (_isProfileLoading) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: Colors.white,
+        child: const CircularProgressIndicator(strokeWidth: 2),
+      );
+    }
+
+    if (_profilePic.isNotEmpty) {
+      return CircleAvatar(
+        radius: radius,
+        backgroundColor: Colors.white,
+        backgroundImage: NetworkImage(_profilePic),
+        onBackgroundImageError: (_, __) {
+          print('===== HOME SCREEN IMAGE LOAD ERROR =====');
+          print('FAILED URL: $_profilePic');
+        },
+      );
+    }
+
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: Colors.white,
+      backgroundImage: const AssetImage('assets/images/home1.png'),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -20,7 +83,6 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFFEDECEC),
       body: Stack(
         children: [
-          /// 🔥 WHITE OVERLAY SECTION
           Positioned(
             top: h * 0.34,
             left: 0,
@@ -41,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: EdgeInsets.only(top: h * 0.012),
                 child: Column(
                   children: [
-                    SizedBox(height: w*0.01,),
+                    SizedBox(height: w * 0.01),
                     Align(
                       alignment: Alignment.topLeft,
                       child: Text(
@@ -53,26 +115,25 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    SizedBox(height: w*0.05,),
-                    /// Job Card
+                    SizedBox(height: w * 0.05),
                     Expanded(
                       child: SingleChildScrollView(
-                        physics: BouncingScrollPhysics(),
+                        physics: const BouncingScrollPhysics(),
                         child: Column(
                           children: [
                             Container(
-                              height: h*0.225,
+                              height: h * 0.225,
                               decoration: BoxDecoration(
-                                color: Color(0xFFEAF4F6),
+                                color: const Color(0xFFEAF4F6),
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Color(0xFFCDCDCD))
+                                border: Border.all(color: const Color(0xFFCDCDCD)),
                               ),
                               child: Row(
                                 children: [
                                   Container(
-                                    height: h*0.215,
+                                    height: h * 0.215,
                                     width: w * 0.02,
-                                    decoration: BoxDecoration(
+                                    decoration: const BoxDecoration(
                                       color: Color(0xFF2A8DA7),
                                       borderRadius: BorderRadius.only(
                                         bottomLeft: Radius.circular(18),
@@ -80,10 +141,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                   ),
-
                                   SizedBox(width: w * 0.03),
-
-                                  /// 🔥 FIXED PART
                                   Expanded(
                                     child: Padding(
                                       padding: EdgeInsets.only(
@@ -93,15 +151,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                       child: Column(
                                         children: [
-                                          /// 🔹 First Row
                                           Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Container(
                                                 height: base * 0.15,
                                                 width: base * 0.15,
-                                                decoration: BoxDecoration(
+                                                decoration: const BoxDecoration(
                                                   color: Colors.white,
                                                   shape: BoxShape.circle,
                                                 ),
@@ -114,53 +170,40 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   ),
                                                 ),
                                               ),
-
                                               SizedBox(width: w * 0.03),
-
                                               Expanded(
                                                 child: Column(
                                                   crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                  CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
                                                       'Shopping Delivery',
                                                       style: TextStyle(
                                                         fontSize: base * 0.038,
                                                         fontFamily: 'SB',
-                                                        fontWeight:
-                                                            FontWeight.w600,
+                                                        fontWeight: FontWeight.w600,
                                                       ),
                                                     ),
-
                                                     SizedBox(height: h * 0.005),
-
                                                     Row(
                                                       children: [
                                                         Icon(
-                                                          Icons
-                                                              .location_on_rounded,
-                                                          color: Color(
-                                                            0xFF959595,
-                                                          ),
+                                                          Icons.location_on_rounded,
+                                                          color: const Color(0xFF959595),
                                                           size: base * 0.045,
                                                         ),
-                                                        SizedBox(
-                                                          width: w * 0.01,
-                                                        ),
+                                                        SizedBox(width: w * 0.01),
                                                         Expanded(
                                                           child: Text(
                                                             'Road123, colony Z',
                                                             style: TextStyle(
-                                                              fontSize:
-                                                                  base * 0.028,
+                                                              fontSize: base * 0.028,
                                                               fontFamily: 'R',
                                                               fontWeight:
-                                                                  FontWeight
-                                                                      .w400,
+                                                              FontWeight.w400,
                                                             ),
                                                             overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
+                                                            TextOverflow.ellipsis,
                                                           ),
                                                         ),
                                                       ],
@@ -170,22 +213,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                               ),
                                             ],
                                           ),
-
                                           SizedBox(height: h * 0.018),
-
-                                          /// 🔹 Second Row
                                           Row(
                                             children: [
                                               Image(
-                                                image: AssetImage(
+                                                image: const AssetImage(
                                                   'assets/images/home5.png',
                                                 ),
                                                 height: base * 0.05,
                                                 width: base * 0.05,
                                               ),
-
                                               SizedBox(width: w * 0.005),
-
                                               Text(
                                                 '12 min ago',
                                                 style: TextStyle(
@@ -194,19 +232,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   fontWeight: FontWeight.w400,
                                                 ),
                                               ),
-
                                               SizedBox(width: w * 0.032),
-
                                               Image(
-                                                image: AssetImage(
+                                                image: const AssetImage(
                                                   'assets/images/home4.png',
                                                 ),
                                                 height: base * 0.05,
                                                 width: base * 0.05,
                                               ),
-
                                               SizedBox(width: w * 0.01),
-
                                               Text(
                                                 '50k + Applied',
                                                 style: TextStyle(
@@ -215,28 +249,30 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   fontWeight: FontWeight.w400,
                                                 ),
                                               ),
-                                              Spacer(),
+                                              const Spacer(),
                                               Container(
                                                 decoration: BoxDecoration(
-                                                  color: Color(0xFFD7EBDC),
+                                                  color: const Color(0xFFD7EBDC),
                                                   borderRadius:
-                                                      BorderRadius.circular(7),
+                                                  BorderRadius.circular(7),
                                                 ),
-                                                padding: EdgeInsets.symmetric(vertical:w * 0.01,horizontal: w*0.03),
+                                                padding: EdgeInsets.symmetric(
+                                                  vertical: w * 0.01,
+                                                  horizontal: w * 0.03,
+                                                ),
                                                 child: Row(
                                                   mainAxisAlignment:
-                                                      MainAxisAlignment.center,
+                                                  MainAxisAlignment.center,
                                                   children: [
                                                     Icon(
                                                       Icons.bolt,
                                                       size: base * 0.055,
-                                                      color: Color(0xFFEFB32C),
+                                                      color: const Color(0xFFEFB32C),
                                                     ),
                                                     Text(
                                                       'Active',
                                                       style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w500,
+                                                        fontWeight: FontWeight.w500,
                                                         fontFamily: 'M',
                                                         fontSize: base * 0.03,
                                                       ),
@@ -248,16 +284,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                           SizedBox(height: h * 0.022),
                                           Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.end,
+                                            mainAxisAlignment: MainAxisAlignment.end,
                                             children: [
                                               Container(
                                                 decoration: BoxDecoration(
                                                   borderRadius:
-                                                      BorderRadius.circular(10),
+                                                  BorderRadius.circular(10),
                                                   color: Colors.black,
                                                 ),
-                                                padding: EdgeInsets.symmetric(vertical: w*0.02,horizontal: w*0.03),
+                                                padding: EdgeInsets.symmetric(
+                                                  vertical: w * 0.02,
+                                                  horizontal: w * 0.03,
+                                                ),
                                                 child: Center(
                                                   child: Text(
                                                     'See Details',
@@ -268,7 +306,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       color: Colors.white,
                                                     ),
                                                   ),
-
                                                 ),
                                               ),
                                             ],
@@ -280,20 +317,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                             ),
-                            SizedBox(height: h *0.01),
+                            SizedBox(height: h * 0.01),
                             Container(
-                              height: h*0.225,
+                              height: h * 0.225,
                               decoration: BoxDecoration(
-                                  color: Color(0xFFFDF7EA),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: Color(0xFFCDCDCD))
+                                color: const Color(0xFFFDF7EA),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: const Color(0xFFCDCDCD)),
                               ),
                               child: Row(
                                 children: [
                                   Container(
-                                    height: h*0.215,
+                                    height: h * 0.215,
                                     width: w * 0.02,
-                                    decoration: BoxDecoration(
+                                    decoration: const BoxDecoration(
                                       color: Color(0xFFEFB32C),
                                       borderRadius: BorderRadius.only(
                                         bottomLeft: Radius.circular(18),
@@ -301,10 +338,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     ),
                                   ),
-
                                   SizedBox(width: w * 0.03),
-
-                                  /// 🔥 FIXED PART
                                   Expanded(
                                     child: Padding(
                                       padding: EdgeInsets.only(
@@ -314,15 +348,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                       child: Column(
                                         children: [
-                                          /// 🔹 First Row
                                           Row(
-                                            crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               Container(
                                                 height: base * 0.15,
                                                 width: base * 0.15,
-                                                decoration: BoxDecoration(
+                                                decoration: const BoxDecoration(
                                                   color: Colors.white,
                                                   shape: BoxShape.circle,
                                                 ),
@@ -335,9 +367,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   ),
                                                 ),
                                               ),
-
                                               SizedBox(width: w * 0.03),
-
                                               Expanded(
                                                 child: Column(
                                                   crossAxisAlignment:
@@ -348,40 +378,29 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       style: TextStyle(
                                                         fontSize: base * 0.038,
                                                         fontFamily: 'SB',
-                                                        fontWeight:
-                                                        FontWeight.w600,
+                                                        fontWeight: FontWeight.w600,
                                                       ),
                                                     ),
-
                                                     SizedBox(height: h * 0.005),
-
                                                     Row(
                                                       children: [
                                                         Icon(
-                                                          Icons
-                                                              .location_on_rounded,
-                                                          color: Color(
-                                                            0xFF959595,
-                                                          ),
+                                                          Icons.location_on_rounded,
+                                                          color: const Color(0xFF959595),
                                                           size: base * 0.045,
                                                         ),
-                                                        SizedBox(
-                                                          width: w * 0.01,
-                                                        ),
+                                                        SizedBox(width: w * 0.01),
                                                         Expanded(
                                                           child: Text(
                                                             'Road123, colony Z',
                                                             style: TextStyle(
-                                                              fontSize:
-                                                              base * 0.028,
+                                                              fontSize: base * 0.028,
                                                               fontFamily: 'R',
                                                               fontWeight:
-                                                              FontWeight
-                                                                  .w400,
+                                                              FontWeight.w400,
                                                             ),
                                                             overflow:
-                                                            TextOverflow
-                                                                .ellipsis,
+                                                            TextOverflow.ellipsis,
                                                           ),
                                                         ),
                                                       ],
@@ -391,22 +410,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                               ),
                                             ],
                                           ),
-
                                           SizedBox(height: h * 0.018),
-
-                                          /// 🔹 Second Row
                                           Row(
                                             children: [
                                               Image(
-                                                image: AssetImage(
+                                                image: const AssetImage(
                                                   'assets/images/home5.png',
                                                 ),
                                                 height: base * 0.05,
                                                 width: base * 0.05,
                                               ),
-
                                               SizedBox(width: w * 0.005),
-
                                               Text(
                                                 '12 min ago',
                                                 style: TextStyle(
@@ -415,19 +429,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   fontWeight: FontWeight.w400,
                                                 ),
                                               ),
-
                                               SizedBox(width: w * 0.032),
-
                                               Image(
-                                                image: AssetImage(
+                                                image: const AssetImage(
                                                   'assets/images/home4.png',
                                                 ),
                                                 height: base * 0.05,
                                                 width: base * 0.05,
                                               ),
-
                                               SizedBox(width: w * 0.01),
-
                                               Text(
                                                 '50k + Applied',
                                                 style: TextStyle(
@@ -436,20 +446,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   fontWeight: FontWeight.w400,
                                                 ),
                                               ),
-                                              Spacer(),
+                                              const Spacer(),
                                               Container(
                                                 decoration: BoxDecoration(
-                                                  color: Color(0xFFE2DDD3),
+                                                  color: const Color(0xFFE2DDD3),
                                                   borderRadius:
                                                   BorderRadius.circular(7),
                                                 ),
-                                                padding: EdgeInsets.symmetric(vertical:w * 0.01,horizontal: w*0.03),
+                                                padding: EdgeInsets.symmetric(
+                                                  vertical: w * 0.01,
+                                                  horizontal: w * 0.03,
+                                                ),
                                                 child: Center(
                                                   child: Text(
                                                     'InActive',
                                                     style: TextStyle(
-                                                      fontWeight:
-                                                      FontWeight.w500,
+                                                      fontWeight: FontWeight.w500,
                                                       fontFamily: 'M',
                                                       fontSize: base * 0.03,
                                                     ),
@@ -460,16 +472,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                           SizedBox(height: h * 0.022),
                                           Row(
-                                            mainAxisAlignment:
-                                            MainAxisAlignment.end,
+                                            mainAxisAlignment: MainAxisAlignment.end,
                                             children: [
                                               Container(
                                                 decoration: BoxDecoration(
                                                   borderRadius:
                                                   BorderRadius.circular(10),
-                                                  color: Color(0xFF959595),
+                                                  color: const Color(0xFF959595),
                                                 ),
-                                                padding: EdgeInsets.symmetric(vertical: w*0.02,horizontal: w*0.03),
+                                                padding: EdgeInsets.symmetric(
+                                                  vertical: w * 0.02,
+                                                  horizontal: w * 0.03,
+                                                ),
                                                 child: Center(
                                                   child: Text(
                                                     'See Details',
@@ -480,7 +494,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       color: Colors.white,
                                                     ),
                                                   ),
-
                                                 ),
                                               ),
                                             ],
@@ -492,7 +505,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ],
                               ),
                             ),
-                            SizedBox(height: h * 0.09)
+                            SizedBox(height: h * 0.09),
                           ],
                         ),
                       ),
@@ -503,29 +516,22 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          /// 🔹 TOP SECTION
           Padding(
             padding: EdgeInsets.symmetric(horizontal: w * 0.06),
             child: Column(
               children: [
                 SizedBox(height: h * 0.07),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CircleAvatar(
-                      radius: base * 0.06,
-                      backgroundImage: const AssetImage(
-                        'assets/images/home1.png',
-                      ),
-                    ),
+                    _buildTopProfileAvatar(base * 0.06),
                     Container(
-                      height: base * 0.135, // container ka size
+                      height: base * 0.135,
                       width: base * 0.135,
                       decoration: BoxDecoration(
-                        color: Colors.white, // background color
-                        shape: BoxShape.circle, // circular shape
-                        boxShadow: [ // optional: thodi shadow
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: const [
                           BoxShadow(
                             color: Colors.black12,
                             blurRadius: 4,
@@ -537,16 +543,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Icon(
                           Icons.notifications,
                           size: base * 0.07,
-                          color: Colors.black, // icon color
+                          color: Colors.black,
                         ),
                       ),
-                    )
-
+                    ),
                   ],
                 ),
-
                 SizedBox(height: h * 0.04),
-
                 Row(
                   children: [
                     Text(
@@ -557,16 +560,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(width: w*0.07,),
+                    SizedBox(width: w * 0.07),
                     Image.asset("assets/images/home3.png", height: h * 0.09),
                   ],
                 ),
-
                 SizedBox(height: h * 0.035),
-
-                /// Search Field
                 Container(
-                  height: h*0.058,
+                  height: h * 0.058,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(base * 0.08),
                     boxShadow: [

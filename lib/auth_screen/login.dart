@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:helper/Authontication_Services/Authorization_services.login.dart';
+import 'package:helper/Authontication_Services/session_manager.dart';
 import 'package:helper/auth_screen/Sign_up.dart';
 import 'package:helper/bottom_screens/bottom_navigation_screen.dart';
 import 'package:helper/components/container_button.dart';
@@ -16,7 +16,7 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _password = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   bool _obsecureText = true;
   bool checked = false;
@@ -24,32 +24,10 @@ class _LoginState extends State<Login> {
 
   final AuthService _authService = AuthService();
 
-  static const String _isLoggedInKey = 'is_logged_in';
-  static const String _userIdKey = 'user_id';
-  static const String _userEmailKey = 'user_email';
-
-  Future<void> _saveLoginSession({
-    required int userId,
-    required String email,
-  }) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    await prefs.setBool(_isLoggedInKey, true);
-    await prefs.setInt(_userIdKey, userId);
-    await prefs.setString(_userEmailKey, email);
-
-    print('===== SESSION SAVED FROM LOGIN =====');
-    print('USER ID: $userId');
-    print('EMAIL: $email');
-    print('IS LOGGED IN: ${prefs.getBool(_isLoggedInKey)}');
-    print('SAVED USER ID: ${prefs.getInt(_userIdKey)}');
-    print('SAVED EMAIL: ${prefs.getString(_userEmailKey)}');
-  }
-
   @override
   void dispose() {
     _emailController.dispose();
-    _password.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -59,11 +37,7 @@ class _LoginState extends State<Login> {
     FocusScope.of(context).unfocus();
 
     final email = _emailController.text.trim().toLowerCase();
-    final password = _password.text;
-
-    print('===== LOGIN BUTTON PRESSED =====');
-    print('Entered Email: $email');
-    print('Entered Password Length: ${password.length}');
+    final password = _passwordController.text;
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -78,69 +52,81 @@ class _LoginState extends State<Login> {
       _isLoading = true;
     });
 
-    final result = await _authService.login(
-      email: email,
-      password: password,
-    );
-
-    if (!mounted) return;
-
-    setState(() {
-      _isLoading = false;
-    });
-
-    print('===== LOGIN FINAL RESULT =====');
-    print(result);
-
-    if (result['success'] == true) {
-      final int userId = result['user_id'] is int
-          ? result['user_id']
-          : int.tryParse(result['user_id']?.toString() ?? '0') ?? 0;
-
-      final String savedEmail =
-      (result['email']?.toString().isNotEmpty ?? false)
-          ? result['email'].toString()
-          : email;
-
-      print('===== FINAL USER ID FROM LOGIN SCREEN =====');
-      print(userId);
-      print(savedEmail);
-
-      if (userId == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login successful but user id not found from API'),
-          ),
-        );
-        return;
-      }
-
-      await _saveLoginSession(
-        userId: userId,
-        email: savedEmail,
+    try {
+      final result = await _authService.login(
+        email: email,
+        password: password,
       );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message'] ?? 'Login successful'),
-        ),
-      );
-
-      _emailController.clear();
-      _password.clear();
 
       if (!mounted) return;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const BottomNavigationScreen(),
-        ),
-      );
-    } else {
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (result['success'] == true) {
+        final int userId = result['user_id'] is int
+            ? result['user_id']
+            : int.tryParse(result['user_id']?.toString() ?? '0') ?? 0;
+
+        final String savedEmail =
+        (result['email']?.toString().isNotEmpty ?? false)
+            ? result['email'].toString().trim().toLowerCase()
+            : email;
+
+        final String username = result['username']?.toString() ?? '';
+        final String profilePic = result['profile_pic']?.toString() ?? '';
+
+        if (userId == 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Login successful but user id not found from API'),
+            ),
+          );
+          return;
+        }
+
+        await SessionManager.saveLoginSession(
+          userId: userId,
+          email: savedEmail,
+          username: username,
+          profilePic: profilePic,
+        );
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Login successful'),
+          ),
+        );
+
+        _emailController.clear();
+        _passwordController.clear();
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const BottomNavigationScreen(),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Invalid Login Credentials'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message'] ?? 'Invalid Login Credentials'),
+        const SnackBar(
+          content: Text('Something went wrong. Please try again.'),
         ),
       );
     }
@@ -214,6 +200,8 @@ class _LoginState extends State<Login> {
                   SizedBox(height: h * 0.009),
                   CustomTextformField(
                     obsecureText: _obsecureText,
+                    controller: _passwordController,
+                    keyBoardType: TextInputType.visiblePassword,
                     sufixIcon: IconButton(
                       onPressed: () {
                         setState(() {
@@ -221,13 +209,13 @@ class _LoginState extends State<Login> {
                         });
                       },
                       icon: Icon(
-                        _obsecureText ? Icons.visibility : Icons.visibility_off,
+                        _obsecureText
+                            ? Icons.visibility
+                            : Icons.visibility_off,
                         color: const Color(0xFFC6C6C6),
                       ),
                     ),
                     title: 'Password',
-                    controller: _password,
-                    keyBoardType: TextInputType.visiblePassword,
                   ),
                   SizedBox(height: h * 0.013),
                   Row(

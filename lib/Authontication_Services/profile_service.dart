@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:helper/Models/profile_model.dart';
 import 'package:http/http.dart' as http;
 
-class ResetPasswordService {
-  static const String resetPasswordUrl =
-      'https://helpr.digital/api/reset-password';
+class ProfileViewService {
+  static const String profileViewUrl =
+      'https://helpr.digital/api/user/profile/view';
 
-  bool _parseSuccess(dynamic value, int statusCode) {
+  static bool _parseSuccess(dynamic value, int statusCode) {
     if (value is bool) return value;
 
     if (value is String) {
@@ -16,34 +17,29 @@ class ResetPasswordService {
       if (v == 'false' || v == '0') return false;
     }
 
-    if (value is int) {
-      return value == 1;
-    }
+    if (value is int) return value == 1;
 
-    return statusCode >= 200 && statusCode < 300;
+    return statusCode == 200 || statusCode == 201;
   }
 
-  Future<Map<String, dynamic>> resetPassword({
+  static Future<Map<String, dynamic>> fetchProfile({
     required int userId,
-    required String otp,
-    required String password,
   }) async {
     try {
-      final sanitizedOtp = otp.replaceAll(RegExp(r'[^0-9]'), '');
+      print('===== PROFILE VIEW API HIT =====');
+      print('URL: $profileViewUrl');
+      print('USER ID: $userId');
 
       final body = {
         'user_id': userId,
-        'otp': sanitizedOtp,
-        'password': password,
       };
 
-      print('===== RESET PASSWORD API HIT =====');
-      print('URL: $resetPasswordUrl');
-      print('REQUEST BODY: ${jsonEncode(body)}');
+      print('===== PROFILE VIEW REQUEST BODY =====');
+      print(jsonEncode(body));
 
       final response = await http
           .post(
-        Uri.parse(resetPasswordUrl),
+        Uri.parse(profileViewUrl),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -52,7 +48,7 @@ class ResetPasswordService {
       )
           .timeout(const Duration(seconds: 20));
 
-      print('===== RESET PASSWORD RESPONSE =====');
+      print('===== PROFILE VIEW RESPONSE =====');
       print('STATUS CODE: ${response.statusCode}');
       print('BODY: ${response.body}');
 
@@ -60,6 +56,7 @@ class ResetPasswordService {
         return {
           'success': false,
           'message': 'Server returned empty response',
+          'user': null,
         };
       }
 
@@ -68,34 +65,52 @@ class ResetPasswordService {
       if (decoded is! Map<String, dynamic>) {
         return {
           'success': false,
-          'message': 'Unexpected server response',
+          'message': 'Invalid server response',
+          'user': null,
         };
       }
 
+      final success = _parseSuccess(decoded['success'], response.statusCode);
+
+      ProfileUserModel? user;
+      if (decoded['user'] is Map<String, dynamic>) {
+        user = ProfileUserModel.fromJson(decoded['user']);
+      }
+
       return {
-        'success': _parseSuccess(decoded['success'], response.statusCode),
-        'message': decoded['message']?.toString() ?? 'Something went wrong',
-        'data': decoded,
+        'success': success,
+        'message': decoded['message']?.toString() ?? '',
+        'user': user,
       };
-    } on SocketException {
+    } on SocketException catch (e) {
+      print('===== PROFILE VIEW SOCKET ERROR =====');
+      print(e.toString());
       return {
         'success': false,
         'message': 'Network error. Please check your internet connection.',
+        'user': null,
       };
     } on TimeoutException {
+      print('===== PROFILE VIEW TIMEOUT =====');
       return {
         'success': false,
-        'message': 'Server is taking too long to respond. Please try again.',
+        'message': 'Server is taking too long to respond.',
+        'user': null,
       };
     } on FormatException {
+      print('===== PROFILE VIEW FORMAT ERROR =====');
       return {
         'success': false,
         'message': 'Invalid server response.',
+        'user': null,
       };
     } catch (e) {
+      print('===== PROFILE VIEW ERROR =====');
+      print(e.toString());
       return {
         'success': false,
         'message': 'Something went wrong: $e',
+        'user': null,
       };
     }
   }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:helper/Authontication_Services/Authorization_services.changepassword.dart';
+import 'package:helper/Authontication_Services/changepasswordservice.dart';
+import 'package:helper/Authontication_Services/session_manager.dart';
 import 'package:helper/bottom_screens/bottom_navigation_screen.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
@@ -16,36 +16,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final TextEditingController _confirmPasswordController =
   TextEditingController();
 
-  final ChangePasswordService _changePasswordService = ChangePasswordService();
-
   bool _obsecureOldPassword = true;
   bool _obsecureNewPassword = true;
   bool _obsecureConfirmPassword = true;
   bool _isLoading = false;
-
-  int _userId = 0;
-
-  static const String _userIdKey = 'user_id';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUserId();
-  }
-
-  Future<void> _loadUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getInt(_userIdKey) ?? 0;
-
-    print('===== SESSION USER ID FROM CHANGE PASSWORD =====');
-    print(userId);
-
-    if (!mounted) return;
-
-    setState(() {
-      _userId = userId;
-    });
-  }
 
   @override
   void dispose() {
@@ -60,24 +34,14 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
     FocusScope.of(context).unfocus();
 
-    final oldPassword = _oldPasswordController.text;
-    final newPassword = _newPasswordController.text;
-    final confirmPassword = _confirmPasswordController.text;
+    final oldPassword = _oldPasswordController.text; // trim nahi karna
+    final newPassword = _newPasswordController.text; // trim nahi karna
+    final confirmPassword = _confirmPasswordController.text; // trim nahi karna
 
     print('===== CHANGE PASSWORD BUTTON PRESSED =====');
-    print('USER ID: $_userId');
     print('OLD PASSWORD LENGTH: ${oldPassword.length}');
     print('NEW PASSWORD LENGTH: ${newPassword.length}');
     print('CONFIRM PASSWORD LENGTH: ${confirmPassword.length}');
-
-    if (_userId == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('User session not found. Please login again.'),
-        ),
-      );
-      return;
-    }
 
     if (oldPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -117,43 +81,84 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       _isLoading = true;
     });
 
-    final result = await _changePasswordService.changePassword(
-      userId: _userId,
-      currentPassword: oldPassword,
-      newPassword: newPassword,
-    );
+    try {
+      final int userId = await SessionManager.getUserId();
 
-    if (!mounted) return;
+      print('===== SESSION USER ID FOR CHANGE PASSWORD =====');
+      print('USER ID: $userId');
 
-    setState(() {
-      _isLoading = false;
-    });
+      if (userId == 0) {
+        if (!mounted) return;
 
-    print('===== FINAL CHANGE PASSWORD RESULT =====');
-    print(result);
+        setState(() {
+          _isLoading = false;
+        });
 
-    if (result['success'] == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message'] ?? 'Password changed successfully'),
-        ),
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('User session not found. Please login again.'),
+          ),
+        );
+        return;
+      }
+
+      final result = await ChangePasswordService.changePassword(
+        userId: userId,
+        currentPassword: oldPassword,
+        newPassword: newPassword,
       );
 
-      _oldPasswordController.clear();
-      _newPasswordController.clear();
-      _confirmPasswordController.clear();
+      print('===== CHANGE PASSWORD FINAL RESULT =====');
+      print(result);
 
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const BottomNavigationScreen(currentIndex: 4),
-        ),
-            (route) => false,
-      );
-    } else {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (result['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Password changed successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        _oldPasswordController.clear();
+        _newPasswordController.clear();
+        _confirmPasswordController.clear();
+
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const BottomNavigationScreen(currentIndex: 4),
+          ),
+              (route) => false,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result['message'] ?? 'Failed to change password',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      print('===== CHANGE PASSWORD SCREEN EXCEPTION =====');
+      print(e.toString());
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(result['message'] ?? 'Failed to change password'),
+        const SnackBar(
+          content: Text('Something went wrong. Please try again.'),
         ),
       );
     }
@@ -197,7 +202,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         },
                         icon: Padding(
                           padding: EdgeInsets.only(left: width * 0.02),
-                          child: Icon(Icons.arrow_back_ios, size: width * 0.045),
+                          child: Icon(
+                            Icons.arrow_back_ios,
+                            size: width * 0.045,
+                          ),
                         ),
                         color: const Color(0xFF2A8DA7),
                       ),
@@ -309,6 +317,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       child: TextFormField(
         controller: controller,
         obscureText: obscure,
+        autocorrect: false,
+        enableSuggestions: false,
+        keyboardType: TextInputType.visiblePassword,
         decoration: InputDecoration(
           hintText: hintText,
           contentPadding:

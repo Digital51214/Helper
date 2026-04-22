@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:helper/Authontication_Services/Authorization_services.forgetpassword.dart';
+import 'package:helper/Authontication_Services/session_manager2.forgetpassword.dart';
 import 'package:helper/components/container_button.dart';
 import 'package:helper/components/custom_textformfield.dart';
 import 'package:helper/components/custom_widgets.dart';
@@ -30,19 +31,14 @@ class _ForgetPasswordState extends State<ForgetPassword> {
     return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email.trim());
   }
 
-  /// Converts common PK number formats into +923001234567
   String _normalizePhone(String input) {
     String phone = input.trim();
-
-    // remove spaces, dashes, brackets etc but keep +
     phone = phone.replaceAll(RegExp(r'[^\d+]'), '');
 
-    // Case 1: 03001234567 -> +923001234567
     if (phone.startsWith('03') && phone.length == 11) {
       return '+92${phone.substring(1)}';
     }
 
-    // Case 2: 3001234567 -> +923001234567
     if (!phone.startsWith('0') &&
         !phone.startsWith('92') &&
         !phone.startsWith('+92') &&
@@ -50,12 +46,10 @@ class _ForgetPasswordState extends State<ForgetPassword> {
       return '+92$phone';
     }
 
-    // Case 3: 923001234567 -> +923001234567
     if (phone.startsWith('92') && phone.length == 12) {
       return '+$phone';
     }
 
-    // Case 4: +923001234567 -> same
     if (phone.startsWith('+92') && phone.length == 13) {
       return phone;
     }
@@ -74,10 +68,6 @@ class _ForgetPasswordState extends State<ForgetPassword> {
 
     final rawValue = _valueController.text.trim();
 
-    print('===== FIND ACCOUNT BUTTON PRESSED =====');
-    print('SELECTED INDEX: $selectedIndex');
-    print('INPUT VALUE: $rawValue');
-
     if (rawValue.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -91,8 +81,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
       return;
     }
 
-    String? email;
-    String? phone;
+    String sentValue = '';
 
     if (selectedIndex == 0) {
       if (!_isValidEmail(rawValue)) {
@@ -103,11 +92,9 @@ class _ForgetPasswordState extends State<ForgetPassword> {
         );
         return;
       }
-      email = rawValue.trim().toLowerCase();
+      sentValue = rawValue.toLowerCase();
     } else {
       final normalizedPhone = _normalizePhone(rawValue);
-
-      print('NORMALIZED PHONE: $normalizedPhone');
 
       if (!_isValidPhone(normalizedPhone)) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -120,54 +107,65 @@ class _ForgetPasswordState extends State<ForgetPassword> {
         return;
       }
 
-      phone = normalizedPhone;
+      sentValue = normalizedPhone;
     }
 
     setState(() {
       _isLoading = true;
     });
 
-    final result = await _forgotPasswordService.forgotPassword(
-      email: email,
-      phone: phone,
-    );
+    try {
+      final response = await _forgotPasswordService.sendForgotPasswordOtp(
+        email: selectedIndex == 0 ? sentValue : null,
+        phone: selectedIndex == 1 ? sentValue : null,
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      _isLoading = false;
-    });
+      if (response.success) {
+        await SessionManager.saveForgotPasswordSession(
+          userId: response.userId,
+          otp: response.otp,
+          sentTo: sentValue,
+          isPhone: selectedIndex == 1,
+        );
 
-    print('===== FINAL FORGOT PASSWORD RESULT =====');
-    print(result);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(response.message)),
+        );
 
-    if (result['success'] == true) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VerifyScreen(
+              sentTo: sentValue,
+              isPhone: selectedIndex == 1,
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              response.message.isNotEmpty
+                  ? response.message
+                  : 'Something went wrong',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result['message']?.toString() ?? 'OTP has been sent successfully.',
-          ),
-        ),
+        SnackBar(content: Text('Error: $e')),
       );
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => VerifyScreen(
-            userId: result['user_id'],
-            sentTo: selectedIndex == 0 ? email! : phone!,
-            isPhone: selectedIndex == 1,
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result['message']?.toString() ?? 'Failed to send OTP',
-          ),
-        ),
-      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -190,17 +188,13 @@ class _ForgetPasswordState extends State<ForgetPassword> {
               child: Column(
                 children: [
                   CustomWidgets(title: 'Forget Password'),
-
                   SizedBox(height: ws.height * 0.03),
-
-                  Image(
-                    image: const AssetImage('assets/images/forget1.png'),
+                  Image.asset(
+                    'assets/images/forget1.png',
                     height: ws.height * 0.25,
                     width: ws.height * 0.25,
                   ),
-
                   SizedBox(height: ws.height * 0.05),
-
                   Row(
                     children: [
                       Text(
@@ -213,16 +207,14 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                       ),
                     ],
                   ),
-
                   SizedBox(height: ws.height * 0.01),
-
                   Row(
                     children: [
                       Expanded(
                         child: Text(
                           selectedIndex == 0
-                              ? 'Enter email to find your account'
-                              : 'Enter phone to find your account',
+                              ? 'Enter email to receive OTP'
+                              : 'Enter phone to receive OTP',
                           style: TextStyle(
                             fontFamily: 'R',
                             fontWeight: FontWeight.w400,
@@ -232,9 +224,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                       ),
                     ],
                   ),
-
                   SizedBox(height: ws.height * 0.03),
-
                   Container(
                     height: ws.height * 0.055,
                     width: ws.width * 0.65,
@@ -244,63 +234,63 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                     ),
                     child: Row(
                       children: [
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedIndex = 0;
-                              _valueController.clear();
-                            });
-                          },
-                          child: Container(
-                            height: ws.height * 0.055,
-                            width: ws.width * 0.325,
-                            decoration: BoxDecoration(
-                              color: selectedIndex == 0
-                                  ? Colors.black
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'Email',
-                                style: TextStyle(
-                                  fontFamily: 'SB',
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: ws.width * 0.045,
-                                  color: selectedIndex == 0
-                                      ? Colors.white
-                                      : Colors.black,
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                selectedIndex = 0;
+                                _valueController.clear();
+                              });
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: selectedIndex == 0
+                                    ? Colors.black
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Email',
+                                  style: TextStyle(
+                                    fontFamily: 'SB',
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: ws.width * 0.045,
+                                    color: selectedIndex == 0
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              selectedIndex = 1;
-                              _valueController.clear();
-                            });
-                          },
-                          child: Container(
-                            height: ws.height * 0.055,
-                            width: ws.width * 0.325,
-                            decoration: BoxDecoration(
-                              color: selectedIndex == 1
-                                  ? Colors.black
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'Phone',
-                                style: TextStyle(
-                                  fontFamily: 'SB',
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: ws.width * 0.045,
-                                  color: selectedIndex == 1
-                                      ? Colors.white
-                                      : Colors.black,
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                selectedIndex = 1;
+                                _valueController.clear();
+                              });
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: selectedIndex == 1
+                                    ? Colors.black
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Phone',
+                                  style: TextStyle(
+                                    fontFamily: 'SB',
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: ws.width * 0.045,
+                                    color: selectedIndex == 1
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
                                 ),
                               ),
                             ),
@@ -309,9 +299,7 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                       ],
                     ),
                   ),
-
                   SizedBox(height: ws.height * 0.035),
-
                   CustomTextformField(
                     title: selectedIndex == 0
                         ? 'Email Address'
@@ -321,21 +309,17 @@ class _ForgetPasswordState extends State<ForgetPassword> {
                         ? TextInputType.emailAddress
                         : TextInputType.phone,
                   ),
-
                   SizedBox(height: ws.height * 0.035),
-
                   ContainerButton(
                     title: _isLoading ? 'Please Wait...' : 'Find Your Account',
                     isLoading: _isLoading,
                     onPressed: _findAccount,
                   ),
-
                   SizedBox(height: ws.height * 0.02),
                 ],
               ),
             ),
           ),
-
           if (_isLoading)
             Container(
               color: Colors.black.withOpacity(0.2),

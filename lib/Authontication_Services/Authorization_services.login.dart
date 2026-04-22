@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:helper/Authontication_Services/session_manager.dart';
 
 class AuthService {
   static const String loginUrl = 'https://helpr.digital/api/signin';
@@ -43,6 +44,38 @@ class AuthService {
     return value?.toString();
   }
 
+  String? _extractUsername(Map<String, dynamic> data) {
+    final dynamic value =
+        data['username'] ??
+            data['name'] ??
+            data['user']?['username'] ??
+            data['user']?['name'] ??
+            data['data']?['username'] ??
+            data['data']?['name'] ??
+            data['data']?['user']?['username'] ??
+            data['data']?['user']?['name'];
+
+    return value?.toString();
+  }
+
+  String? _extractProfilePic(Map<String, dynamic> data) {
+    final dynamic value =
+        data['profile_pic'] ??
+            data['profile_image'] ??
+            data['image'] ??
+            data['user']?['profile_pic'] ??
+            data['user']?['profile_image'] ??
+            data['user']?['image'] ??
+            data['data']?['profile_pic'] ??
+            data['data']?['profile_image'] ??
+            data['data']?['image'] ??
+            data['data']?['user']?['profile_pic'] ??
+            data['data']?['user']?['profile_image'] ??
+            data['data']?['user']?['image'];
+
+    return value?.toString();
+  }
+
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
@@ -51,7 +84,7 @@ class AuthService {
       print('===== LOGIN API HIT =====');
       print('URL: $loginUrl');
       print('EMAIL: $email');
-      print('PASSWORD: $password');
+      print('PASSWORD LENGTH: ${password.length}');
 
       final response = await http
           .post(
@@ -77,6 +110,8 @@ class AuthService {
           'message': 'Server returned empty response',
           'user_id': null,
           'email': null,
+          'username': null,
+          'profile_pic': null,
           'data': null,
         };
       }
@@ -89,6 +124,8 @@ class AuthService {
           'message': 'Invalid server response',
           'user_id': null,
           'email': null,
+          'username': null,
+          'profile_pic': null,
           'data': null,
         };
       }
@@ -96,10 +133,17 @@ class AuthService {
       final success = _parseSuccess(decodedData['success'], response.statusCode);
       final userId = _extractUserId(decodedData);
       final extractedEmail = _extractEmail(decodedData);
+      final extractedUsername = _extractUsername(decodedData);
+      final extractedProfilePic = _extractProfilePic(decodedData);
+      final normalizedProfilePic =
+      SessionManager.normalizeProfilePic(extractedProfilePic ?? '');
 
       print('===== EXTRACTED LOGIN DATA =====');
       print('USER ID: $userId');
       print('EMAIL: $extractedEmail');
+      print('USERNAME: $extractedUsername');
+      print('PROFILE PIC RAW: $extractedProfilePic');
+      print('PROFILE PIC NORMALIZED: $normalizedProfilePic');
 
       return {
         'success': success,
@@ -107,6 +151,8 @@ class AuthService {
             (success ? 'Login successful' : 'Login failed'),
         'user_id': userId,
         'email': extractedEmail ?? email,
+        'username': extractedUsername ?? '',
+        'profile_pic': normalizedProfilePic,
         'data': decodedData,
       };
     } on SocketException catch (e) {
@@ -118,6 +164,8 @@ class AuthService {
         'message': 'Network error. Please check your internet connection.',
         'user_id': null,
         'email': null,
+        'username': null,
+        'profile_pic': null,
         'data': null,
       };
     } on TimeoutException {
@@ -128,6 +176,8 @@ class AuthService {
         'message': 'Server is taking too long to respond.',
         'user_id': null,
         'email': null,
+        'username': null,
+        'profile_pic': null,
         'data': null,
       };
     } on FormatException {
@@ -138,6 +188,8 @@ class AuthService {
         'message': 'Invalid server response.',
         'user_id': null,
         'email': null,
+        'username': null,
+        'profile_pic': null,
         'data': null,
       };
     } catch (e) {
@@ -149,6 +201,8 @@ class AuthService {
         'message': 'Something went wrong: $e',
         'user_id': null,
         'email': null,
+        'username': null,
+        'profile_pic': null,
         'data': null,
       };
     }
