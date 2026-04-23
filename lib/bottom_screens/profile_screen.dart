@@ -16,6 +16,9 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  static const String _defaultProfileAsset =
+      'assets/images/defaultpic.png';
+
   bool isToggled = false;
   bool _isLoading = true;
 
@@ -31,15 +34,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadProfile() async {
-    setState(() {
-      _isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
 
     try {
-      _userId = await SessionManager.getUserId();
-      _username = await SessionManager.getUserName();
-      _email = await SessionManager.getUserEmail();
-      _profilePic = await SessionManager.getProfilePic();
+      final int sessionUserId = await SessionManager.getUserId();
+      final String sessionUsername = await SessionManager.getUserName();
+      final String sessionEmail = await SessionManager.getUserEmail();
+      final String sessionProfilePic = await SessionManager.getProfilePic();
+
+      _userId = sessionUserId;
+      _username = sessionUsername;
+      _email = sessionEmail;
+      _profilePic = sessionProfilePic;
 
       print('===== PROFILE SCREEN SESSION DATA =====');
       print('USER ID: $_userId');
@@ -56,9 +66,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (result['success'] == true && result['user'] != null) {
           final ProfileUserModel user = result['user'];
 
-          _username = user.username;
-          _email = user.email;
-          _profilePic = SessionManager.normalizeProfilePic(user.profilePic);
+          _username = user.username.trim().isNotEmpty
+              ? user.username
+              : _username;
+          _email = user.email.trim().isNotEmpty ? user.email : _email;
+          _profilePic = user.profilePic.trim().isNotEmpty
+              ? SessionManager.normalizeProfilePic(user.profilePic)
+              : _profilePic;
+
           await SessionManager.updateProfileData(
             username: _username,
             email: _email,
@@ -123,7 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return CircleAvatar(
       radius: radius,
       backgroundColor: Colors.grey.shade200,
-      child: const Icon(Icons.person, size: 40, color: Colors.grey),
+      backgroundImage: const AssetImage(_defaultProfileAsset),
     );
   }
 
@@ -235,7 +250,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ChangePasswordScreen(),
+                            builder: (context) =>
+                            const ChangePasswordScreen(),
                           ),
                         );
                       },
@@ -284,7 +300,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ),
                                   ),
                                   AnimatedPositioned(
-                                    duration: const Duration(milliseconds: 300),
+                                    duration:
+                                    const Duration(milliseconds: 300),
                                     top: -h * 0.005,
                                     left: isToggled ? w * 0.065 : -h * 0.005,
                                     child: Container(
@@ -362,7 +379,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       await _logout();
                                     },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF692226),
+                                      backgroundColor:
+                                      const Color(0xFF692226),
                                     ),
                                     child: const Text(
                                       'Logout',

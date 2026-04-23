@@ -29,6 +29,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String _initialEmail = '';
   String _initialProfilePic = '';
 
+  final ImagePicker _picker = ImagePicker();
+
+  static const String _defaultProfileAsset = 'assets/images/defaultpic.png';
+
   @override
   void initState() {
     super.initState();
@@ -105,12 +109,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImageFromSource(ImageSource source) async {
     try {
-      final ImagePicker picker = ImagePicker();
-
-      final XFile? pickedImage = await picker.pickImage(
-        source: ImageSource.gallery,
+      final XFile? pickedImage = await _picker.pickImage(
+        source: source,
         imageQuality: 70,
       );
 
@@ -120,6 +122,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         });
 
         print('===== IMAGE PICKED =====');
+        print('SOURCE: ${source.name}');
         print('PATH: ${pickedImage.path}');
       }
     } catch (e) {
@@ -133,6 +136,177 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
       );
     }
+  }
+
+  Future<void> _showImageSourceBottomSheet() async {
+    final size = MediaQuery.of(context).size;
+    final wScale = size.width / 375;
+    final hScale = size.height / 812;
+    final tScale = (wScale + hScale) / 2;
+
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (bottomSheetContext) {
+        return Container(
+          padding: EdgeInsets.fromLTRB(
+            20 * wScale,
+            18 * hScale,
+            20 * wScale,
+            24 * hScale,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(28),
+            ),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 46 * wScale,
+                  height: 5 * hScale,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD9D9D9),
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                ),
+                SizedBox(height: 18 * hScale),
+                Text(
+                  'Choose Profile Photo',
+                  style: TextStyle(
+                    fontSize: 18 * tScale,
+                    fontWeight: FontWeight.w700,
+                    fontFamily: 'B',
+                    color: Colors.black,
+                  ),
+                ),
+                SizedBox(height: 6 * hScale),
+                Text(
+                  'Select image source',
+                  style: TextStyle(
+                    fontSize: 12 * tScale,
+                    fontWeight: FontWeight.w500,
+                    fontFamily: 'R',
+                    color: Colors.black54,
+                  ),
+                ),
+                SizedBox(height: 22 * hScale),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _bottomSheetOptionCard(
+                        icon: Icons.camera_alt_rounded,
+                        title: 'Camera',
+                        subtitle: 'Take photo now',
+                        onTap: () async {
+                          Navigator.pop(bottomSheetContext);
+                          await _pickImageFromSource(ImageSource.camera);
+                        },
+                        tScale: tScale,
+                        hScale: hScale,
+                        wScale: wScale,
+                      ),
+                    ),
+                    SizedBox(width: 14 * wScale),
+                    Expanded(
+                      child: _bottomSheetOptionCard(
+                        icon: Icons.photo_library_rounded,
+                        title: 'Gallery',
+                        subtitle: 'Choose from phone',
+                        onTap: () async {
+                          Navigator.pop(bottomSheetContext);
+                          await _pickImageFromSource(ImageSource.gallery);
+                        },
+                        tScale: tScale,
+                        hScale: hScale,
+                        wScale: wScale,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _bottomSheetOptionCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    required double tScale,
+    required double hScale,
+    required double wScale,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(22),
+      onTap: onTap,
+      child: Ink(
+        padding: EdgeInsets.symmetric(
+          vertical: 18 * hScale,
+          horizontal: 14 * wScale,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF7FBFC),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: const Color(0xFFE1EEF2),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              height: 54 * hScale,
+              width: 54 * hScale,
+              decoration: const BoxDecoration(
+                color: Color(0xFFE4F9FF),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: const Color(0xFF2A8DA7),
+                size: 26 * tScale,
+              ),
+            ),
+            SizedBox(height: 12 * hScale),
+            Text(
+              title,
+              style: TextStyle(
+                fontFamily: 'B',
+                fontWeight: FontWeight.w700,
+                fontSize: 14 * tScale,
+                color: Colors.black,
+              ),
+            ),
+            SizedBox(height: 4 * hScale),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'R',
+                fontWeight: FontWeight.w500,
+                fontSize: 11 * tScale,
+                color: Colors.black54,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<String> _convertImageToBase64(File file) async {
@@ -221,10 +395,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (!mounted) return;
 
-      setState(() {
-        _isLoading = false;
-      });
-
       if (result['success'] == true && result['user'] != null) {
         final ProfileUserModel user = result['user'];
         final normalizedPic = SessionManager.normalizeProfilePic(user.profilePic);
@@ -262,10 +432,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } catch (e) {
       if (!mounted) return;
 
-      setState(() {
-        _isLoading = false;
-      });
-
       print('===== UPDATE PROFILE SCREEN ERROR =====');
       print(e.toString());
 
@@ -274,19 +440,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           content: Text('Something went wrong. Please try again.'),
         ),
       );
+    } finally {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  Widget _buildProfileImage(double size) {
+  Widget _buildProfileImage(
+      double size,
+      double tScale,
+      double hScale,
+      double wScale,
+      ) {
+    Widget avatar;
+
     if (_selectedImageFile != null) {
-      return CircleAvatar(
+      avatar = CircleAvatar(
         radius: size,
+        backgroundColor: Colors.grey.shade200,
         backgroundImage: FileImage(_selectedImageFile!),
       );
-    }
-
-    if (_networkImage.isNotEmpty) {
-      return CircleAvatar(
+    } else if (_networkImage.isNotEmpty) {
+      avatar = CircleAvatar(
         radius: size,
         backgroundColor: Colors.grey.shade200,
         backgroundImage: NetworkImage(_networkImage),
@@ -295,12 +473,60 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           print('FAILED URL: $_networkImage');
         },
       );
+    } else {
+      avatar = CircleAvatar(
+        radius: size,
+        backgroundColor: Colors.grey.shade200,
+        backgroundImage: const AssetImage(_defaultProfileAsset),
+      );
     }
 
-    return CircleAvatar(
-      radius: size,
-      backgroundColor: Colors.grey.shade200,
-      child: const Icon(Icons.person, size: 40, color: Colors.grey),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          padding: EdgeInsets.all(4 * wScale),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: const Color(0xFFE4F9FF),
+              width: 3,
+            ),
+          ),
+          child: avatar,
+        ),
+        Positioned(
+          right: -2 * wScale,
+          bottom: 2 * hScale,
+          child: GestureDetector(
+            onTap: _showImageSourceBottomSheet,
+            child: Container(
+              height: 34 * hScale,
+              width: 34 * hScale,
+              decoration: BoxDecoration(
+                color: const Color(0xFF2A8DA7),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white,
+                  width: 2.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.16),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.camera_alt_rounded,
+                color: Colors.white,
+                size: 17 * tScale,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -313,174 +539,171 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          _isProfileLoading
-              ? const Center(
-            child: CircularProgressIndicator(),
-          )
-              : Padding(
-            padding: EdgeInsets.all(10 * wScale),
-            child: SingleChildScrollView(
-              child: Column(
+      body: _isProfileLoading
+          ? const Center(
+        child: CircularProgressIndicator(),
+      )
+          : Padding(
+        padding: EdgeInsets.all(10 * wScale),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.only(top: 50 * hScale),
+                child: Row(
+                  children: [
+                    Container(
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFE4F9FF),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        icon: Padding(
+                          padding: EdgeInsets.only(
+                            left: MediaQuery.of(context).size.width * 0.02,
+                          ),
+                          child: Icon(
+                            Icons.arrow_back_ios,
+                            size: 18 * tScale,
+                          ),
+                        ),
+                        color: const Color(0xFF2A8DA7),
+                      ),
+                    ),
+                    SizedBox(width: 30 * wScale),
+                    Text(
+                      'Edit Profile',
+                      style: TextStyle(
+                        fontFamily: 'B',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18 * tScale,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 30 * hScale),
+              Column(
                 children: [
-                  Padding(
-                    padding: EdgeInsets.only(top: 50 * hScale),
-                    child: Row(
-                      children: [
-                        Container(
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFE4F9FF),
-                            shape: BoxShape.circle,
-                          ),
-                          child: IconButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            icon: Padding(
-                              padding: EdgeInsets.only(
-                                left: MediaQuery.of(context).size.width * 0.02,
-                              ),
-                              child: Icon(
-                                Icons.arrow_back_ios,
-                                size: 18 * tScale,
-                              ),
-                            ),
-                            color: const Color(0xFF2A8DA7),
-                          ),
-                        ),
-                        SizedBox(width: 30 * wScale),
-                        Text(
-                          'Edit Profile',
-                          style: TextStyle(
-                            fontFamily: 'B',
-                            fontWeight: FontWeight.w700,
-                            fontSize: 18 * tScale,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 30 * hScale),
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Column(
-                      children: [
-                        _buildProfileImage(48 * tScale),
-                        SizedBox(height: 10 * hScale),
-                        Text(
-                          'Tap to change photo',
-                          style: TextStyle(
-                            fontFamily: 'R',
-                            fontSize: 12 * tScale,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 40 * hScale),
-                  SizedBox(
-                    height: size.height * 0.058,
-                    child: TextFormField(
-                      controller: _usernameController,
-                      decoration: InputDecoration(
-                        hintText: 'Enter username',
-                        hintStyle: TextStyle(
-                          fontFamily: 'SB',
-                          fontSize: 12 * tScale,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30 * tScale),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFCDCDCD),
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30 * tScale),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFCDCDCD),
-                          ),
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 16 * hScale,
-                          horizontal: 20 * wScale,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: size.height * 0.01),
-                  SizedBox(
-                    height: size.height * 0.058,
-                    child: TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        hintText: 'Example@mail.com',
-                        hintStyle: TextStyle(
-                          fontFamily: 'SB',
-                          fontSize: 12 * tScale,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30 * tScale),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFCDCDCD),
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30 * tScale),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFCDCDCD),
-                          ),
-                        ),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 16 * hScale,
-                          horizontal: 20 * wScale,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: size.height * 0.04),
-                  GestureDetector(
-                    onTap: _isLoading ? null : _updateProfile,
-                    child: Container(
-                      height: size.height * 0.058,
-                      width: 373 * wScale,
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        border: Border.all(
-                          width: 2,
-                          color: Colors.white.withOpacity(0.158),
-                        ),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Center(
-                        child: Text(
-                          _isLoading ? 'Please Wait...' : 'Update',
-                          style: TextStyle(
-                            fontFamily: 'SB',
-                            fontSize: 14 * tScale,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
+                  _buildProfileImage(48 * tScale, tScale, hScale, wScale),
+                  SizedBox(height: 12 * hScale),
+                  Text(
+                    'Change profile photo',
+                    style: TextStyle(
+                      fontFamily: 'R',
+                      fontSize: 12 * tScale,
+                      color: Colors.black54,
                     ),
                   ),
                 ],
               ),
-            ),
-          ),
-          if (_isLoading)
-            Container(
-              color: Colors.black.withOpacity(0.2),
-              child: const Center(
-                child: CircularProgressIndicator(),
+              SizedBox(height: 40 * hScale),
+              SizedBox(
+                height: size.height * 0.058,
+                child: TextFormField(
+                  controller: _usernameController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter username',
+                    hintStyle: TextStyle(
+                      fontFamily: 'SB',
+                      fontSize: 12 * tScale,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30 * tScale),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFCDCDCD),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30 * tScale),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF2A8DA7),
+                      ),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 16 * hScale,
+                      horizontal: 20 * wScale,
+                    ),
+                  ),
+                ),
               ),
-            ),
-        ],
+              SizedBox(height: size.height * 0.01),
+              SizedBox(
+                height: size.height * 0.058,
+                child: TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    hintText: 'Example@mail.com',
+                    hintStyle: TextStyle(
+                      fontFamily: 'SB',
+                      fontSize: 12 * tScale,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30 * tScale),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFCDCDCD),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30 * tScale),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF2A8DA7),
+                      ),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 16 * hScale,
+                      horizontal: 20 * wScale,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: size.height * 0.04),
+              GestureDetector(
+                onTap: _isLoading ? null : _updateProfile,
+                child: Container(
+                  height: size.height * 0.058,
+                  width: 373 * wScale,
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    border: Border.all(
+                      width: 2,
+                      color: Colors.white.withOpacity(0.158),
+                    ),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Center(
+                    child: _isLoading
+                        ? SizedBox(
+                      height: 20 * hScale,
+                      width: 20 * hScale,
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Colors.white,
+                        ),
+                      ),
+                    )
+                        : Text(
+                      'Update',
+                      style: TextStyle(
+                        fontFamily: 'SB',
+                        fontSize: 14 * tScale,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

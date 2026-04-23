@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:helper/Authontication_Services/changepasswordservice.dart';
 import 'package:helper/Authontication_Services/session_manager.dart';
 import 'package:helper/bottom_screens/bottom_navigation_screen.dart';
+import 'package:helper/components/password validator.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -21,6 +22,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   bool _obsecureConfirmPassword = true;
   bool _isLoading = false;
 
+  String? _oldPasswordError;
+  String? _newPasswordError;
+  String? _confirmPasswordError;
+
   @override
   void dispose() {
     _oldPasswordController.dispose();
@@ -29,51 +34,87 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
+  void _showMessage(String text, {bool isSuccess = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text),
+        backgroundColor: isSuccess ? Colors.green : Colors.red,
+      ),
+    );
+  }
+
+  String? _validateOldPassword(String value) {
+    if (value.isEmpty) {
+      return 'Old password is required';
+    }
+    return null;
+  }
+
+  String? _validateNewPassword(String value) {
+    if (value.isEmpty) {
+      return 'New password is required';
+    }
+    if (value == _oldPasswordController.text) {
+      return 'New password must be different from old password';
+    }
+    return PasswordValidator.validate(value);
+  }
+
+  String? _validateConfirmPassword(String value) {
+    if (value.isEmpty) {
+      return 'Confirm password is required';
+    }
+    if (value != _newPasswordController.text) {
+      return 'New password and confirm password do not match';
+    }
+    return null;
+  }
+
+  bool _validateFields() {
+    final oldPassword = _oldPasswordController.text;
+    final newPassword = _newPasswordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    final oldPasswordError = _validateOldPassword(oldPassword);
+    final newPasswordError = _validateNewPassword(newPassword);
+    final confirmPasswordError = _validateConfirmPassword(confirmPassword);
+
+    setState(() {
+      _oldPasswordError = oldPasswordError;
+      _newPasswordError = newPasswordError;
+      _confirmPasswordError = confirmPasswordError;
+    });
+
+    return oldPasswordError == null &&
+        newPasswordError == null &&
+        confirmPasswordError == null;
+  }
+
   Future<void> _changePassword() async {
     if (_isLoading) return;
 
     FocusScope.of(context).unfocus();
 
-    final oldPassword = _oldPasswordController.text; // trim nahi karna
-    final newPassword = _newPasswordController.text; // trim nahi karna
-    final confirmPassword = _confirmPasswordController.text; // trim nahi karna
+    if (!_validateFields()) {
+      return;
+    }
+
+    final oldPassword = _oldPasswordController.text;
+    final newPassword = _newPasswordController.text;
+    final confirmPassword = _confirmPasswordController.text;
 
     print('===== CHANGE PASSWORD BUTTON PRESSED =====');
     print('OLD PASSWORD LENGTH: ${oldPassword.length}');
     print('NEW PASSWORD LENGTH: ${newPassword.length}');
     print('CONFIRM PASSWORD LENGTH: ${confirmPassword.length}');
 
-    if (oldPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all password fields')),
-      );
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('New password must be at least 6 characters'),
-        ),
-      );
-      return;
-    }
-
     if (newPassword != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('New password and confirm password do not match'),
-        ),
-      );
+      _showMessage('New password and confirm password do not match');
       return;
     }
 
     if (oldPassword == newPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('New password must be different from old password'),
-        ),
-      );
+      _showMessage('New password must be different from old password');
       return;
     }
 
@@ -94,11 +135,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           _isLoading = false;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('User session not found. Please login again.'),
-          ),
-        );
+        _showMessage('User session not found. Please login again.');
         return;
       }
 
@@ -118,16 +155,20 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       });
 
       if (result['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Password changed successfully'),
-            backgroundColor: Colors.green,
-          ),
+        _showMessage(
+          result['message'] ?? 'Password changed successfully',
+          isSuccess: true,
         );
 
         _oldPasswordController.clear();
         _newPasswordController.clear();
         _confirmPasswordController.clear();
+
+        setState(() {
+          _oldPasswordError = null;
+          _newPasswordError = null;
+          _confirmPasswordError = null;
+        });
 
         Navigator.pushAndRemoveUntil(
           context,
@@ -137,14 +178,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               (route) => false,
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              result['message'] ?? 'Failed to change password',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
+        _showMessage(result['message'] ?? 'Failed to change password');
       }
     } catch (e) {
       if (!mounted) return;
@@ -156,12 +190,85 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       print('===== CHANGE PASSWORD SCREEN EXCEPTION =====');
       print(e.toString());
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Something went wrong. Please try again.'),
-        ),
-      );
+      _showMessage('Something went wrong. Please try again.');
     }
+  }
+
+  Widget _buildPasswordField({
+    required double width,
+    required TextEditingController controller,
+    required bool obscure,
+    required String hintText,
+    required VoidCallback onTap,
+    required String? errorText,
+    required Function(String value) onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 45,
+          child: TextFormField(
+            controller: controller,
+            obscureText: obscure,
+            autocorrect: false,
+            enableSuggestions: false,
+            keyboardType: TextInputType.visiblePassword,
+            onChanged: onChanged,
+            decoration: InputDecoration(
+              hintText: hintText,
+              errorText: null,
+              contentPadding:
+              const EdgeInsets.symmetric(vertical: 2, horizontal: 10),
+              hintStyle: TextStyle(
+                fontFamily: 'R',
+                fontSize: width * 0.024,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFFA4A4A4),
+              ),
+              suffixIcon: IconButton(
+                onPressed: onTap,
+                icon: Icon(
+                  obscure ? Icons.visibility : Icons.visibility_off,
+                  color: const Color(0xFFCDCDCD),
+                  size: width * 0.06,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide(
+                  color: errorText == null
+                      ? const Color(0xFFCDCDCD)
+                      : Colors.red,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide(
+                  color: errorText == null
+                      ? const Color(0xFF2A8DA7)
+                      : Colors.red,
+                ),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: errorText == null ? 0 : 6),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 14, right: 14),
+            child: Text(
+              errorText,
+              style: TextStyle(
+                fontFamily: 'R',
+                fontSize: width * 0.028,
+                height: 1.2,
+                color: Colors.red,
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   @override
@@ -195,7 +302,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                             context,
                             MaterialPageRoute(
                               builder: (context) =>
-                              const BottomNavigationScreen(currentIndex: 4),
+                              const BottomNavigationScreen(
+                                currentIndex: 4,
+                              ),
                             ),
                                 (Route<dynamic> route) => false,
                           );
@@ -228,42 +337,76 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   width: width * 0.4,
                 ),
                 SizedBox(height: height * 0.05),
+
                 _buildPasswordField(
                   width: width,
                   controller: _oldPasswordController,
                   obscure: _obsecureOldPassword,
                   hintText: 'Enter Old Password',
+                  errorText: _oldPasswordError,
                   onTap: () {
                     setState(() {
                       _obsecureOldPassword = !_obsecureOldPassword;
                     });
                   },
+                  onChanged: (value) {
+                    setState(() {
+                      _oldPasswordError = _validateOldPassword(value);
+                      if (_newPasswordController.text.isNotEmpty) {
+                        _newPasswordError =
+                            _validateNewPassword(_newPasswordController.text);
+                      }
+                    });
+                  },
                 ),
+
                 SizedBox(height: height * 0.01),
+
                 _buildPasswordField(
                   width: width,
                   controller: _newPasswordController,
                   obscure: _obsecureNewPassword,
                   hintText: 'Enter New Password',
+                  errorText: _newPasswordError,
                   onTap: () {
                     setState(() {
                       _obsecureNewPassword = !_obsecureNewPassword;
                     });
                   },
+                  onChanged: (value) {
+                    setState(() {
+                      _newPasswordError = _validateNewPassword(value);
+                      if (_confirmPasswordController.text.isNotEmpty) {
+                        _confirmPasswordError = _validateConfirmPassword(
+                          _confirmPasswordController.text,
+                        );
+                      }
+                    });
+                  },
                 ),
+
                 SizedBox(height: height * 0.01),
+
                 _buildPasswordField(
                   width: width,
                   controller: _confirmPasswordController,
                   obscure: _obsecureConfirmPassword,
                   hintText: 'Enter Confirm Password',
+                  errorText: _confirmPasswordError,
                   onTap: () {
                     setState(() {
                       _obsecureConfirmPassword = !_obsecureConfirmPassword;
                     });
                   },
+                  onChanged: (value) {
+                    setState(() {
+                      _confirmPasswordError = _validateConfirmPassword(value);
+                    });
+                  },
                 ),
-                SizedBox(height: height * 0.03),
+
+                SizedBox(height: height * 0.04),
+
                 GestureDetector(
                   onTap: _isLoading ? null : _changePassword,
                   child: Container(
@@ -301,52 +444,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildPasswordField({
-    required double width,
-    required TextEditingController controller,
-    required bool obscure,
-    required String hintText,
-    required VoidCallback onTap,
-  }) {
-    return SizedBox(
-      height: 45,
-      child: TextFormField(
-        controller: controller,
-        obscureText: obscure,
-        autocorrect: false,
-        enableSuggestions: false,
-        keyboardType: TextInputType.visiblePassword,
-        decoration: InputDecoration(
-          hintText: hintText,
-          contentPadding:
-          const EdgeInsets.symmetric(vertical: 2, horizontal: 10),
-          hintStyle: TextStyle(
-            fontFamily: 'R',
-            fontSize: width * 0.034,
-            fontWeight: FontWeight.w400,
-            color: const Color(0xFFA4A4A4),
-          ),
-          suffixIcon: IconButton(
-            onPressed: onTap,
-            icon: Icon(
-              obscure ? Icons.visibility : Icons.visibility_off,
-              color: const Color(0xFFCDCDCD),
-              size: width * 0.06,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: const BorderSide(color: Color(0xFFCDCDCD)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: const BorderSide(color: Color(0xFFCDCDCD)),
-          ),
-        ),
       ),
     );
   }

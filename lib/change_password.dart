@@ -4,6 +4,7 @@ import 'package:helper/Authontication_Services/session_manager.dart';
 import 'package:helper/Authontication_Services/session_manager2.forgetpassword.dart'
 as forgot_session;
 import 'package:helper/auth_screen/login.dart';
+import 'package:helper/components/password validator.dart';
 
 class UpdatePasswordScreen extends StatefulWidget {
   final String otp;
@@ -28,6 +29,9 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
 
+  String? _newPasswordError;
+  String? _confirmPasswordError;
+
   @override
   void dispose() {
     _newPasswordController.dispose();
@@ -35,47 +39,63 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
     super.dispose();
   }
 
+  void _showMessage(String text, {bool isSuccess = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text),
+        backgroundColor: isSuccess ? Colors.green : Colors.red,
+      ),
+    );
+  }
+
+  String? _validateNewPassword(String value) {
+    return PasswordValidator.validate(value);
+  }
+
+  String? _validateConfirmPassword(String value) {
+    if (value.isEmpty) {
+      return 'Confirm password is required';
+    }
+    if (value != _newPasswordController.text) {
+      return 'Password and confirm password must be the same';
+    }
+    return null;
+  }
+
+  bool _validateFields() {
+    final newPassword = _newPasswordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    final newPasswordError = _validateNewPassword(newPassword);
+    final confirmPasswordError = _validateConfirmPassword(confirmPassword);
+
+    setState(() {
+      _newPasswordError = newPasswordError;
+      _confirmPasswordError = confirmPasswordError;
+    });
+
+    return newPasswordError == null && confirmPasswordError == null;
+  }
+
   Future<void> _changePassword() async {
     if (_isLoading) return;
 
     FocusScope.of(context).unfocus();
 
+    if (!_validateFields()) {
+      return;
+    }
+
     final newPassword = _newPasswordController.text;
     final confirmPassword = _confirmPasswordController.text;
 
-    if (newPassword.isEmpty || confirmPassword.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill both password fields'),
-        ),
-      );
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password must be at least 6 characters'),
-        ),
-      );
-      return;
-    }
-
     if (newPassword != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password and confirm password must be the same'),
-        ),
-      );
+      _showMessage('Password and confirm password must be the same');
       return;
     }
 
     if (widget.userId == 0 || widget.otp.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid reset session. Please try again.'),
-        ),
-      );
+      _showMessage('Invalid reset session. Please try again.');
       return;
     }
 
@@ -97,18 +117,19 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result['message'] ??
-                'Password reset successful! You can now login with your new password.',
-          ),
-          backgroundColor: Colors.green,
-        ),
+      _showMessage(
+        result['message'] ??
+            'Password reset successful! You can now login with your new password.',
+        isSuccess: true,
       );
 
       _newPasswordController.clear();
       _confirmPasswordController.clear();
+
+      setState(() {
+        _newPasswordError = null;
+        _confirmPasswordError = null;
+      });
 
       Navigator.pushAndRemoveUntil(
         context,
@@ -118,14 +139,7 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
             (route) => false,
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result['message'] ?? 'Unable to reset password.',
-          ),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showMessage(result['message'] ?? 'Unable to reset password.');
     }
   }
 
@@ -135,43 +149,75 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
     required bool obscure,
     required String hintText,
     required VoidCallback onToggle,
+    required String? errorText,
+    required Function(String value) onChanged,
   }) {
-    return SizedBox(
-      height: 50,
-      child: TextFormField(
-        controller: controller,
-        obscureText: obscure,
-        autocorrect: false,
-        enableSuggestions: false,
-        keyboardType: TextInputType.visiblePassword,
-        decoration: InputDecoration(
-          hintText: hintText,
-          contentPadding:
-          const EdgeInsets.symmetric(vertical: 2, horizontal: 14),
-          hintStyle: TextStyle(
-            fontFamily: 'R',
-            fontSize: width * 0.034,
-            fontWeight: FontWeight.w400,
-            color: const Color(0xFFA4A4A4),
-          ),
-          suffixIcon: IconButton(
-            onPressed: onToggle,
-            icon: Icon(
-              obscure ? Icons.visibility : Icons.visibility_off,
-              color: const Color(0xFFCDCDCD),
-              size: width * 0.06,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: 45,
+          child: TextFormField(
+            controller: controller,
+            obscureText: obscure,
+            autocorrect: false,
+            enableSuggestions: false,
+            keyboardType: TextInputType.visiblePassword,
+            onChanged: onChanged,
+            decoration: InputDecoration(
+              hintText: hintText,
+              isDense: true,
+              contentPadding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              hintStyle: TextStyle(
+                fontFamily: 'R',
+                fontSize: width * 0.034,
+                fontWeight: FontWeight.w400,
+                color: const Color(0xFFA4A4A4),
+              ),
+              errorText: null,
+              suffixIcon: IconButton(
+                onPressed: onToggle,
+                icon: Icon(
+                  obscure ? Icons.visibility : Icons.visibility_off,
+                  color: const Color(0xFFCDCDCD),
+                  size: width * 0.06,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide(
+                  color: errorText == null
+                      ? const Color(0xFFCDCDCD)
+                      : Colors.red,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide(
+                  color: errorText == null
+                      ? const Color(0xFF2A8DA7)
+                      : Colors.red,
+                ),
+              ),
             ),
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: const BorderSide(color: Color(0xFFCDCDCD)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30),
-            borderSide: const BorderSide(color: Color(0xFFCDCDCD)),
-          ),
         ),
-      ),
+        SizedBox(height: errorText == null ? 0 : 6),
+        if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 14, right: 14),
+            child: Text(
+              errorText,
+              style: TextStyle(
+                fontFamily: 'R',
+                fontSize: width * 0.028,
+                height: 1.2,
+                color: Colors.red,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -203,9 +249,8 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                           shape: BoxShape.circle,
                         ),
                         child: IconButton(
-                          onPressed: _isLoading
-                              ? null
-                              : () => Navigator.pop(context),
+                          onPressed:
+                          _isLoading ? null : () => Navigator.pop(context),
                           icon: Padding(
                             padding: EdgeInsets.only(left: width * 0.02),
                             child: Icon(
@@ -234,30 +279,52 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
                     width: width * 0.4,
                   ),
                   SizedBox(height: height * 0.05),
+
                   _buildPasswordField(
                     width: width,
                     controller: _newPasswordController,
                     obscure: _obscureNewPassword,
                     hintText: 'Enter New Password',
+                    errorText: _newPasswordError,
                     onToggle: () {
                       setState(() {
                         _obscureNewPassword = !_obscureNewPassword;
                       });
                     },
+                    onChanged: (value) {
+                      setState(() {
+                        _newPasswordError = _validateNewPassword(value);
+                        if (_confirmPasswordController.text.isNotEmpty) {
+                          _confirmPasswordError = _validateConfirmPassword(
+                            _confirmPasswordController.text,
+                          );
+                        }
+                      });
+                    },
                   ),
-                  SizedBox(height: height * 0.015),
+
+                  SizedBox(height: height * 0.012),
+
                   _buildPasswordField(
                     width: width,
                     controller: _confirmPasswordController,
                     obscure: _obscureConfirmPassword,
                     hintText: 'Enter Confirm New Password',
+                    errorText: _confirmPasswordError,
                     onToggle: () {
                       setState(() {
                         _obscureConfirmPassword = !_obscureConfirmPassword;
                       });
                     },
+                    onChanged: (value) {
+                      setState(() {
+                        _confirmPasswordError = _validateConfirmPassword(value);
+                      });
+                    },
                   ),
+
                   SizedBox(height: height * 0.04),
+
                   GestureDetector(
                     onTap: _isLoading ? null : _changePassword,
                     child: Container(

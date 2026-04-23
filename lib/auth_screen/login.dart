@@ -60,10 +60,6 @@ class _LoginState extends State<Login> {
 
       if (!mounted) return;
 
-      setState(() {
-        _isLoading = false;
-      });
-
       if (result['success'] == true) {
         final int userId = result['user_id'] is int
             ? result['user_id']
@@ -120,15 +116,17 @@ class _LoginState extends State<Login> {
     } catch (e) {
       if (!mounted) return;
 
-      setState(() {
-        _isLoading = false;
-      });
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Something went wrong. Please try again.'),
         ),
       );
+    } finally {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -141,252 +139,241 @@ class _LoginState extends State<Login> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          Padding(
-            padding: EdgeInsets.only(
-              left: w * 0.04,
-              right: w * 0.04,
-              top: h * 0.09,
-            ),
-            child: SingleChildScrollView(
-              child: Column(
+      body: Padding(
+        padding: EdgeInsets.only(
+          left: w * 0.04,
+          right: w * 0.04,
+          top: h * 0.09,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image(
-                        image: const AssetImage('assets/images/signup1.png'),
-                        height: h * 0.16,
-                        width: h * 0.16,
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: h * 0.0325),
-                  Padding(
-                    padding: EdgeInsets.only(left: w * 0.02),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Sign In',
-                          style: TextStyle(
-                            fontFamily: 'B',
-                            fontSize: baseSize * 0.055,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(left: w * 0.02, top: h * 0.001),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Welcome Back! Enter Your Account Details',
-                          style: TextStyle(
-                            fontFamily: 'R',
-                            fontSize: baseSize * 0.028,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: h * 0.02),
-                  CustomTextformField(
-                    title: 'EmailAddress',
-                    controller: _emailController,
-                    keyBoardType: TextInputType.emailAddress,
-                  ),
-                  SizedBox(height: h * 0.009),
-                  CustomTextformField(
-                    obsecureText: _obsecureText,
-                    controller: _passwordController,
-                    keyBoardType: TextInputType.visiblePassword,
-                    sufixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _obsecureText = !_obsecureText;
-                        });
-                      },
-                      icon: Icon(
-                        _obsecureText
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                        color: const Color(0xFFC6C6C6),
-                      ),
-                    ),
-                    title: 'Password',
-                  ),
-                  SizedBox(height: h * 0.013),
-                  Row(
-                    children: [
-                      Checkbox(
-                        visualDensity: VisualDensity.compact,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shape: const CircleBorder(),
-                        value: checked,
-                        onChanged: (value) {
-                          setState(() {
-                            checked = value ?? false;
-                          });
-                        },
-                        fillColor: MaterialStateProperty.resolveWith(
-                              (states) => states.contains(MaterialState.selected)
-                              ? const Color(0xFF000000)
-                              : Colors.transparent,
-                        ),
-                        checkColor: Colors.white,
-                      ),
-                      Text(
-                        "Remember Me",
-                        style: TextStyle(
-                          fontFamily: 'R',
-                          fontWeight: FontWeight.w400,
-                          fontSize: baseSize * 0.038,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const Spacer(),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ForgetPassword(),
-                            ),
-                          );
-                        },
-                        child: Text(
-                          "Forget Password?",
-                          style: TextStyle(
-                            fontFamily: 'B',
-                            decoration: TextDecoration.underline,
-                            decorationColor: Colors.black,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black,
-                            fontSize: baseSize * 0.038,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: h * 0.03),
-                  ContainerButton(
-                    title: _isLoading ? 'Please Wait...' : 'Sign In',
-                    isLoading: _isLoading,
-                    onPressed: _isLoading ? null : _login,
-                  ),
-                  SizedBox(height: h * 0.018),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Divider(
-                          thickness: 1,
-                          color: const Color(0xFFCDCDCD),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: w * 0.02),
-                        child: Text(
-                          'OR',
-                          style: TextStyle(
-                            color: const Color(0xFFA4A4A4),
-                            fontSize: baseSize * 0.038,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Divider(
-                          thickness: 1.25,
-                          color: const Color(0xFFCDCDCD),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: h * 0.013),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(w * 0.012),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFFCDCDCD),
-                            width: 1,
-                          ),
-                        ),
-                        child: CircleAvatar(
-                          radius: w * 0.048,
-                          backgroundImage: const AssetImage(
-                            'assets/images/signup2.png',
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: w * 0.04),
-                      Container(
-                        padding: EdgeInsets.all(w * 0.012),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFFCDCDCD),
-                            width: 1,
-                          ),
-                        ),
-                        child: CircleAvatar(
-                          radius: w * 0.048,
-                          backgroundColor: Colors.white,
-                          backgroundImage: const AssetImage(
-                            'assets/images/signup3.png',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: h * 0.1),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Don’t have an account?  ',
-                        style: TextStyle(
-                          fontFamily: 'R',
-                          fontSize: baseSize * 0.034,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => SignUp()),
-                          );
-                        },
-                        child: Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            fontSize: baseSize * 0.042,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black,
-                            decoration: TextDecoration.underline,
-                            decorationColor: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ],
+                  Image(
+                    image: const AssetImage('assets/images/signup1.png'),
+                    height: h * 0.16,
+                    width: h * 0.16,
                   ),
                 ],
               ),
-            ),
-          ),
-          if (_isLoading)
-            Container(
-              color: Colors.black.withOpacity(0.2),
-              child: const Center(
-                child: CircularProgressIndicator(),
+              SizedBox(height: h * 0.0325),
+              Padding(
+                padding: EdgeInsets.only(left: w * 0.02),
+                child: Row(
+                  children: [
+                    Text(
+                      'Sign In',
+                      style: TextStyle(
+                        fontFamily: 'B',
+                        fontSize: baseSize * 0.055,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-        ],
+              Padding(
+                padding: EdgeInsets.only(left: w * 0.02, top: h * 0.001),
+                child: Row(
+                  children: [
+                    Text(
+                      'Welcome Back! Enter Your Account Details',
+                      style: TextStyle(
+                        fontFamily: 'R',
+                        fontSize: baseSize * 0.028,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: h * 0.02),
+              CustomTextformField(
+                title: 'EmailAddress',
+                controller: _emailController,
+                keyBoardType: TextInputType.emailAddress,
+              ),
+              SizedBox(height: h * 0.009),
+              CustomTextformField(
+                obsecureText: _obsecureText,
+                controller: _passwordController,
+                keyBoardType: TextInputType.visiblePassword,
+                sufixIcon: IconButton(
+                  onPressed: () {
+                    setState(() {
+                      _obsecureText = !_obsecureText;
+                    });
+                  },
+                  icon: Icon(
+                    _obsecureText
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                    color: const Color(0xFFC6C6C6),
+                  ),
+                ),
+                title: 'Password',
+              ),
+              SizedBox(height: h * 0.013),
+              Row(
+                children: [
+                  Checkbox(
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: const CircleBorder(),
+                    value: checked,
+                    onChanged: (value) {
+                      setState(() {
+                        checked = value ?? false;
+                      });
+                    },
+                    fillColor: MaterialStateProperty.resolveWith(
+                          (states) => states.contains(MaterialState.selected)
+                          ? const Color(0xFF000000)
+                          : Colors.transparent,
+                    ),
+                    checkColor: Colors.white,
+                  ),
+                  Text(
+                    "Remember Me",
+                    style: TextStyle(
+                      fontFamily: 'R',
+                      fontWeight: FontWeight.w400,
+                      fontSize: baseSize * 0.038,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ForgetPassword(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "Forget Password?",
+                      style: TextStyle(
+                        fontFamily: 'B',
+                        decoration: TextDecoration.underline,
+                        decorationColor: Colors.black,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                        fontSize: baseSize * 0.038,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: h * 0.03),
+              ContainerButton(
+                title: _isLoading ? 'Please Wait...' : 'Sign In',
+                isLoading: _isLoading,
+                onPressed: _isLoading ? null : _login,
+              ),
+              SizedBox(height: h * 0.018),
+              Row(
+                children: [
+                  Expanded(
+                    child: Divider(
+                      thickness: 1,
+                      color: const Color(0xFFCDCDCD),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: w * 0.02),
+                    child: Text(
+                      'OR',
+                      style: TextStyle(
+                        color: const Color(0xFFA4A4A4),
+                        fontSize: baseSize * 0.038,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Divider(
+                      thickness: 1.25,
+                      color: const Color(0xFFCDCDCD),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: h * 0.013),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(w * 0.012),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFFCDCDCD),
+                        width: 1,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: w * 0.048,
+                      backgroundImage: const AssetImage(
+                        'assets/images/signup2.png',
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: w * 0.04),
+                  Container(
+                    padding: EdgeInsets.all(w * 0.012),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: const Color(0xFFCDCDCD),
+                        width: 1,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: w * 0.048,
+                      backgroundColor: Colors.white,
+                      backgroundImage: const AssetImage(
+                        'assets/images/signup3.png',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: h * 0.1),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Don’t have an account?  ',
+                    style: TextStyle(
+                      fontFamily: 'R',
+                      fontSize: baseSize * 0.034,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SignUp()),
+                      );
+                    },
+                    child: Text(
+                      'Sign Up',
+                      style: TextStyle(
+                        fontSize: baseSize * 0.042,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
+                        decoration: TextDecoration.underline,
+                        decorationColor: Colors.black,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -1,12 +1,21 @@
-import 'dart:math';
-
+import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-
+import 'package:helper/Authontication_Services/chat%20message%20service.dart';
+import 'package:helper/Authontication_Services/send%20message%20service.dart';
+import 'package:helper/Authontication_Services/session_manager.dart';
+import 'package:helper/Models/chat%20message%20model.dart';
 import 'bottom_navigation_screen.dart';
 
 class MessageScreen extends StatefulWidget {
-  const MessageScreen({Key? key}) : super(key: key);
+  final int otherUserId;
+  final String otherUserName;
+
+  const MessageScreen({
+    Key? key,
+    required this.otherUserId,
+    required this.otherUserName,
+  }) : super(key: key);
 
   @override
   State<MessageScreen> createState() => _MessageScreenState();
@@ -14,18 +23,31 @@ class MessageScreen extends StatefulWidget {
 
 class _MessageScreenState extends State<MessageScreen> {
   final TextEditingController _controller = TextEditingController();
-  final AudioPlayer _audioPlayer = AudioPlayer();
   final ScrollController _scrollController = ScrollController();
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
+  List<ChatMessageModel> messages = [];
 
   bool isTyping = false;
   bool isPlaying = false;
+  bool isLoading = true;
+  bool isSending = false;
+
+  int currentUserId = 1;
   Duration duration = Duration.zero;
   Duration position = Duration.zero;
+  String? currentlyPlayingUrl;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
+    _setupAudioListeners();
+    _initializeMessages();
+    _startAutoRefresh();
+  }
 
+  void _setupAudioListeners() {
     _audioPlayer.onDurationChanged.listen((d) {
       if (mounted) {
         setState(() => duration = d);
@@ -43,37 +65,177 @@ class _MessageScreenState extends State<MessageScreen> {
         setState(() {
           isPlaying = false;
           position = Duration.zero;
+          currentlyPlayingUrl = null;
         });
       }
     });
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    _audioPlayer.dispose();
-    _scrollController.dispose();
-    super.dispose();
+  void _startAutoRefresh() {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      _loadMessages(showLoader: false);
+    });
   }
 
-  Future<void> toggleAudio() async {
-    if (isPlaying) {
-      await _audioPlayer.pause();
-      if (mounted) {
-        setState(() => isPlaying = false);
+  Future<void> _initializeMessages() async {
+    currentUserId = await SessionManager.getUserId();
+    print('MessageScreen: currentUserId = $currentUserId');
+    await _loadMessages();
+  }
+
+  Future<void> _loadMessages({bool showLoader = true}) async {
+    try {
+      if (showLoader && mounted) {
+        setState(() => isLoading = true);
       }
-    } else {
-      await _audioPlayer.play(AssetSource('audio/record.mp3'));
+
+      final data = await ChatMessagesService.getMessages(
+        userId: currentUserId,
+        otherUserId: widget.otherUserId,
+      );
+
       if (mounted) {
-        setState(() => isPlaying = true);
+        setState(() {
+          messages = data;
+          isLoading = false;
+        });
+      }
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToBottom();
+      });
+    } catch (e) {
+      print('MessageScreen load error: $e');
+      if (mounted) {
+        setState(() => isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load messages: $e')),
+        );
       }
     }
   }
 
-  String formatTime(Duration d) {
-    final minutes = d.inMinutes.remainder(60);
-    final seconds = d.inSeconds.remainder(60);
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  Future<void> _sendTextMessage() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty || isSending) return;
+
+    try {
+      setState(() => isSending = true);
+      print('MessageScreen: sending text = $text');
+
+      final response = await SendMessageService.sendTextMessage(
+        senderId: currentUserId,
+        receiverId: widget.otherUserId,
+        message: text,
+      );
+
+      print('MessageScreen send text success = ${response.success}');
+
+      if (response.success) {
+        _controller.clear();
+        setState(() {
+          isTyping = false;
+        });
+        await _loadMessages(showLoader: false);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Message send failed')),
+        );
+      }
+    } catch (e) {
+      print('MessageScreen send text error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send message: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => isSending = false);
+      }
+    }
+  }
+
+  Future<void> _sendDummyAudioMessage() async {
+    if (isSending) return;
+
+    try {
+      setState(() => isSending = true);
+
+      // Yahan apne real recorder ka base64 lagana hai
+      const dummyBase64Audio = 'BASE64_STRING_OF_AUDIO_HERE';
+
+      print('MessageScreen: sending audio message');
+
+      final response = await SendMessageService.sendAudioMessage(
+        senderId: currentUserId,
+        receiverId: widget.otherUserId,
+        base64Audio: dummyBase64Audio,
+        message: 'Voice Note',
+      );
+
+      print('MessageScreen send audio success = ${response.success}');
+
+      if (response.success) {
+        await _loadMessages(showLoader: false);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Audio send failed')),
+        );
+      }
+    } catch (e) {
+      print('MessageScreen send audio error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send audio: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => isSending = false);
+      }
+    }
+  }
+
+  Future<void> _toggleAudio(String url) async {
+    try {
+      if (currentlyPlayingUrl == url && isPlaying) {
+        await _audioPlayer.pause();
+        if (mounted) {
+          setState(() => isPlaying = false);
+        }
+      } else {
+        print('Playing audio url = $url');
+        await _audioPlayer.stop();
+        await _audioPlayer.play(UrlSource(url));
+        if (mounted) {
+          setState(() {
+            currentlyPlayingUrl = url;
+            isPlaying = true;
+          });
+        }
+      }
+    } catch (e) {
+      print('Audio play error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Audio play failed: $e')),
+      );
+    }
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    _controller.dispose();
+    _audioPlayer.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -86,8 +248,6 @@ class _MessageScreenState extends State<MessageScreen> {
     final hScale = h / 812;
     final tScale = ((wScale + hScale) / 2).clamp(0.85, 1.0);
     final scale = (w / 390).clamp(0.80, 1.0);
-
-    double rs(num v) => (v * scale).toDouble();
 
     return Scaffold(
       backgroundColor: const Color(0xFFEDECEC),
@@ -134,7 +294,7 @@ class _MessageScreenState extends State<MessageScreen> {
                   SizedBox(width: 14 * wScale),
                   Expanded(
                     child: Text(
-                      'Chloe',
+                      widget.otherUserName,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontFamily: 'B',
@@ -170,7 +330,6 @@ class _MessageScreenState extends State<MessageScreen> {
                 ],
               ),
             ),
-
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -181,12 +340,25 @@ class _MessageScreenState extends State<MessageScreen> {
                     topRight: Radius.circular(30),
                   ),
                 ),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
+                child: isLoading
+                    ? const Center(
+                  child: CircularProgressIndicator(
+                    color: Color(0xFF2A8DA7),
                   ),
-                  child: SingleChildScrollView(
+                )
+                    : messages.isEmpty
+                    ? const Center(
+                  child: Text(
+                    'No messages found',
+                    style: TextStyle(
+                      fontFamily: 'R',
+                      color: Colors.black54,
+                    ),
+                  ),
+                )
+                    : RefreshIndicator(
+                  onRefresh: () => _loadMessages(showLoader: false),
+                  child: ListView.builder(
                     controller: _scrollController,
                     padding: EdgeInsets.fromLTRB(
                       16 * wScale,
@@ -194,18 +366,26 @@ class _MessageScreenState extends State<MessageScreen> {
                       16 * wScale,
                       20 * hScale,
                     ),
-                    child: Column(
-                      children: [
-                        _buildReplyCard(wScale, hScale, tScale),
-                        SizedBox(height: 18 * hScale),
-                        _buildMyTextMessage(wScale, hScale, tScale),
-                        SizedBox(height: 18 * hScale),
-                        _buildMyAudioMessage(wScale, hScale, tScale, rs),
-                        SizedBox(height: 18 * hScale),
-                        _buildOtherTextMessage(wScale, hScale, tScale),
-                        SizedBox(height: 20 * hScale),
-                      ],
-                    ),
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final msg = messages[index];
+
+                      if (msg.type == 'audio') {
+                        return _buildAudioMessage(
+                          msg,
+                          wScale,
+                          hScale,
+                          tScale,
+                        );
+                      }
+
+                      return _buildTextMessage(
+                        msg,
+                        wScale,
+                        hScale,
+                        tScale,
+                      );
+                    },
                   ),
                 ),
               ),
@@ -234,7 +414,9 @@ class _MessageScreenState extends State<MessageScreen> {
                 SizedBox(
                   width: 38 * scale,
                   child: IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      print('Attachment button tapped');
+                    },
                     splashRadius: 20,
                     icon: Icon(
                       Icons.add,
@@ -246,7 +428,7 @@ class _MessageScreenState extends State<MessageScreen> {
                 SizedBox(width: 10 * wScale),
                 Expanded(
                   child: SizedBox(
-                    height: 40*scale,
+                    height: 40 * scale,
                     child: TextFormField(
                       controller: _controller,
                       onChanged: (value) {
@@ -264,7 +446,7 @@ class _MessageScreenState extends State<MessageScreen> {
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.white,
-                        hintText: 'Search...',
+                        hintText: 'Type message...',
                         hintStyle: TextStyle(
                           fontSize: 12 * tScale,
                           fontWeight: FontWeight.w500,
@@ -277,10 +459,10 @@ class _MessageScreenState extends State<MessageScreen> {
                         ),
                         suffixIcon: Padding(
                           padding: const EdgeInsets.all(7),
-                          child: Image.asset(
-                            'assets/images/attachments.png',
-                            height: 18 * scale,
-                            width: 18 * scale,
+                          child: Icon(
+                            Icons.attach_file,
+                            size: 18 * scale,
+                            color: Colors.black54,
                           ),
                         ),
                         border: OutlineInputBorder(
@@ -300,104 +482,45 @@ class _MessageScreenState extends State<MessageScreen> {
                   ),
                 ),
                 SizedBox(width: 10 * wScale),
-                SizedBox(
-                  width: 42 * scale,
-                  height: 42 * scale,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Icon(
-                        Icons.send,
-                        color: const Color(0xFF2A8DA7),
-                        size: 34 * tScale,
+                GestureDetector(
+                  onTap: isTyping ? _sendTextMessage : _sendDummyAudioMessage,
+                  child: SizedBox(
+                    width: 42 * scale,
+                    height: 42 * scale,
+                    child: isSending
+                        ? const Center(
+                      child: SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF2A8DA7),
+                        ),
                       ),
-                      if (!isTyping)
-                        Container(
-                          height: 42 * scale,
-                          width: 42 * scale,
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF2A8DA7),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.mic,
-                            color: Colors.white,
-                            size: 24 * tScale,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReplyCard(double wScale, double hScale, double tScale) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(12 * wScale),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEFB32C).withOpacity(0.10),
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(18 * tScale),
-          topRight: Radius.circular(18 * tScale),
-          bottomRight: Radius.circular(18 * tScale),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: const Color(0xFFDDE3E7),
-              borderRadius: BorderRadius.circular(10 * tScale),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 5,
-                  height: 70 * hScale,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2A8DA7),
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(10 * tScale),
-                      bottomLeft: Radius.circular(10 * tScale),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 12 * wScale,
-                      vertical: 14 * hScale,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    )
+                        : Stack(
+                      alignment: Alignment.center,
                       children: [
-                        Text(
-                          'You',
-                          style: TextStyle(
-                            fontSize: 11 * tScale,
-                            fontWeight: FontWeight.w700,
+                        if (isTyping)
+                          Icon(
+                            Icons.send,
                             color: const Color(0xFF2A8DA7),
+                            size: 34 * tScale,
+                          )
+                        else
+                          Container(
+                            height: 42 * scale,
+                            width: 42 * scale,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF2A8DA7),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.mic,
+                              color: Colors.white,
+                              size: 24 * tScale,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 8 * hScale),
-                        Text(
-                          'Can I come over?',
-                          style: TextStyle(
-                            fontFamily: 'R',
-                            fontSize: 11 * tScale,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black87,
-                          ),
-                        ),
                       ],
                     ),
                   ),
@@ -405,239 +528,158 @@ class _MessageScreenState extends State<MessageScreen> {
               ],
             ),
           ),
-          SizedBox(height: 12 * hScale),
-          Text(
-            "Of course, let me know if you’re on your way",
-            style: TextStyle(
-              fontFamily: 'R',
-              fontSize: 11.5 * tScale,
-              color: Colors.black87,
-            ),
-          ),
-          SizedBox(height: 11 * hScale),
-          Text(
-            "16:06",
-            style: TextStyle(
-              fontFamily: 'R',
-              fontSize: 9 * tScale,
-              color: Colors.black38,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildMyTextMessage(double wScale, double hScale, double tScale) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 190 * wScale),
-          child: Container(
-            padding: EdgeInsets.fromLTRB(
-              14 * wScale,
-              12 * hScale,
-              14 * wScale,
-              10 * hScale,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(18 * tScale),
-                topRight: Radius.circular(18 * tScale),
-                bottomLeft: Radius.circular(18 * tScale),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'K, I am on my way',
-                  style: TextStyle(
-                    fontFamily: 'R',
-                    fontSize: 12 * tScale,
-                    color: Colors.white,
-                  ),
-                ),
-                SizedBox(height: 18 * hScale),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Text(
-                    '16.50',
-                    style: TextStyle(
-                      fontFamily: 'R',
-                      fontSize: 9 * tScale,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMyAudioMessage(
+  Widget _buildTextMessage(
+      ChatMessageModel msg,
       double wScale,
       double hScale,
       double tScale,
-      double Function(num) rs,
       ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 290 * wScale),
-          child: Container(
-            padding: EdgeInsets.fromLTRB(
-              12 * wScale,
-              12 * hScale,
-              12 * wScale,
-              10 * hScale,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(18 * tScale),
-                topRight: Radius.circular(18 * tScale),
-                bottomLeft: Radius.circular(18 * tScale),
-              ),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 10 * wScale,
-                    vertical: 8 * hScale,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFBDB782),
-                    borderRadius: BorderRadius.circular(8 * tScale),
-                  ),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: toggleAudio,
-                        child: Icon(
-                          isPlaying ? Icons.pause : Icons.play_arrow,
-                          color: const Color(0xFF2A8DA7),
-                          size: 22 * tScale,
-                        ),
-                      ),
-                      SizedBox(width: rs(8)),
-                      Text(
-                        duration == Duration.zero
-                            ? '0:20'
-                            : formatTime(position),
-                        style: TextStyle(
-                          color: const Color(0xFF2A8DA7),
-                          fontSize: 12 * tScale,
-                          fontFamily: 'R',
-                        ),
-                      ),
-                      SizedBox(width: rs(14)),
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: List.generate(20, (index) {
-                            final randomHeight =
-                            (Random(index).nextInt(18) + 10).toDouble();
+    final isMine = msg.isMine;
 
-                            final activeBars = duration.inSeconds > 0
-                                ? ((position.inSeconds /
-                                duration.inSeconds.clamp(1, 9999)) *
-                                20)
-                                .floor()
-                                .clamp(0, 20)
-                                : 0;
-
-                            final isActive = index < activeBars;
-
-                            return Container(
-                              width: 2.6,
-                              height: randomHeight,
-                              decoration: BoxDecoration(
-                                color: isActive
-                                    ? const Color(0xFF2A8DA7)
-                                    : const Color(0xFF2A8DA7).withOpacity(0.45),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            );
-                          }),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 10 * hScale),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Text(
-                    '09.13',
-                    style: TextStyle(
-                      fontFamily: 'R',
-                      fontSize: 9 * tScale,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+    return Align(
+      alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: EdgeInsets.only(bottom: 14 * hScale),
+        constraints: BoxConstraints(maxWidth: 230 * wScale),
+        padding: EdgeInsets.fromLTRB(
+          14 * wScale,
+          12 * hScale,
+          14 * wScale,
+          10 * hScale,
+        ),
+        decoration: BoxDecoration(
+          color: isMine
+              ? Colors.black
+              : const Color(0xFFEFB32C).withOpacity(0.10),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(18 * tScale),
+            topRight: Radius.circular(18 * tScale),
+            bottomLeft: isMine ? Radius.circular(18 * tScale) : Radius.zero,
+            bottomRight: isMine ? Radius.zero : Radius.circular(18 * tScale),
           ),
         ),
-      ],
+        child: Column(
+          crossAxisAlignment:
+          isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            Align(
+              alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
+              child: Text(
+                msg.message,
+                style: TextStyle(
+                  fontFamily: 'R',
+                  fontSize: 12 * tScale,
+                  color: isMine ? Colors.white : Colors.black87,
+                ),
+              ),
+            ),
+            SizedBox(height: 8 * hScale),
+            Text(
+              msg.time,
+              style: TextStyle(
+                fontFamily: 'R',
+                fontSize: 9 * tScale,
+                color: isMine ? Colors.white70 : Colors.black38,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildOtherTextMessage(double wScale, double hScale, double tScale) {
-    return Row(
-      children: [
-        ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 230 * wScale),
-          child: Container(
-            padding: EdgeInsets.fromLTRB(
-              14 * wScale,
-              14 * hScale,
-              14 * wScale,
-              12 * hScale,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFB32C).withOpacity(0.10),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(18 * tScale),
-                topRight: Radius.circular(18 * tScale),
-                bottomRight: Radius.circular(18 * tScale),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Good morning, did you sleep well?',
-                  style: TextStyle(
-                    fontFamily: 'R',
-                    fontSize: 10 * tScale,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 12 * hScale),
-                Text(
-                  '09:05',
-                  style: TextStyle(
-                    fontFamily: 'R',
-                    fontSize: 9 * tScale,
-                    color: Colors.black38,
-                  ),
-                ),
-              ],
-            ),
+  Widget _buildAudioMessage(
+      ChatMessageModel msg,
+      double wScale,
+      double hScale,
+      double tScale,
+      ) {
+    final isMine = msg.isMine;
+    final isCurrent = currentlyPlayingUrl == msg.fileUrl && isPlaying;
+
+    return Align(
+      alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: EdgeInsets.only(bottom: 14 * hScale),
+        constraints: BoxConstraints(maxWidth: 280 * wScale),
+        padding: EdgeInsets.fromLTRB(
+          12 * wScale,
+          12 * hScale,
+          12 * wScale,
+          10 * hScale,
+        ),
+        decoration: BoxDecoration(
+          color: isMine
+              ? Colors.black
+              : const Color(0xFFEFB32C).withOpacity(0.10),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(18 * tScale),
+            topRight: Radius.circular(18 * tScale),
+            bottomLeft: isMine ? Radius.circular(18 * tScale) : Radius.zero,
+            bottomRight: isMine ? Radius.zero : Radius.circular(18 * tScale),
           ),
         ),
-      ],
+        child: Column(
+          crossAxisAlignment:
+          isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: 10 * wScale,
+                vertical: 8 * hScale,
+              ),
+              decoration: BoxDecoration(
+                color: isMine
+                    ? const Color(0xFFBDB782)
+                    : const Color(0xFFDDE3E7),
+                borderRadius: BorderRadius.circular(8 * tScale),
+              ),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: msg.fileUrl == null
+                        ? null
+                        : () => _toggleAudio(msg.fileUrl!),
+                    child: Icon(
+                      isCurrent ? Icons.pause : Icons.play_arrow,
+                      color: const Color(0xFF2A8DA7),
+                      size: 22 * tScale,
+                    ),
+                  ),
+                  SizedBox(width: 10 * wScale),
+                  Expanded(
+                    child: Text(
+                      msg.message.isEmpty ? 'Voice Note' : msg.message,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontSize: 12 * tScale,
+                        fontFamily: 'R',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 8 * hScale),
+            Text(
+              msg.time,
+              style: TextStyle(
+                fontFamily: 'R',
+                fontSize: 9 * tScale,
+                color: isMine ? Colors.white70 : Colors.black38,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

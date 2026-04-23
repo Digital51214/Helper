@@ -2,72 +2,132 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:helper/Authontication_Services/session_manager.dart';
 
 class AuthService {
-  static const String _baseUrl = 'https://helpr.digital';
-  static final Uri _loginUri = Uri.parse('$_baseUrl/api/signin');
-  static final Uri _signupUri = Uri.parse('$_baseUrl/api/signup');
+  static const String signupUrl = 'https://helpr.digital/api/signup';
 
-  Future<Map<String, dynamic>> login({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      print('===== LOGIN API HIT =====');
-      print('URL: $_loginUri');
-      print('EMAIL: $email');
+  bool _parseSuccess(dynamic value, int statusCode) {
+    if (value is bool) return value;
 
-      final response = await http
-          .post(
-        _loginUri,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
-      )
-          .timeout(const Duration(seconds: 20));
-
-      print('===== LOGIN RESPONSE =====');
-      print('Status Code: ${response.statusCode}');
-      print('Body: ${response.body}');
-
-      return _handleResponse(response, defaultMessage: 'Login failed');
-    } on SocketException catch (e) {
-      print('===== LOGIN SOCKET ERROR =====');
-      print(e.toString());
-
-      return {
-        'success': false,
-        'message':
-        'Internet ya server issue hai. Apna network check karein ya baad me dobara try karein.',
-      };
-    } on TimeoutException {
-      print('===== LOGIN TIMEOUT ERROR =====');
-
-      return {
-        'success': false,
-        'message': 'Server response late aa raha hai. Dobara try karein.',
-      };
-    } on FormatException {
-      print('===== LOGIN FORMAT ERROR =====');
-
-      return {
-        'success': false,
-        'message': 'Server se invalid response aaya hai.',
-      };
-    } catch (e) {
-      print('===== LOGIN ERROR =====');
-      print(e.toString());
-
-      return {
-        'success': false,
-        'message': 'Something went wrong: $e',
-      };
+    if (value is String) {
+      final v = value.trim().toLowerCase();
+      if (v == 'true' || v == '1') return true;
+      if (v == 'false' || v == '0') return false;
     }
+
+    if (value is int) return value == 1;
+
+    return statusCode == 200 || statusCode == 201;
+  }
+
+  int? _extractUserId(Map<String, dynamic> data) {
+    final dynamic id =
+        data['user_id'] ??
+            data['id'] ??
+            data['user']?['id'] ??
+            data['data']?['user_id'] ??
+            data['data']?['id'] ??
+            data['data']?['user']?['id'];
+
+    if (id is int) return id;
+    return int.tryParse(id?.toString() ?? '');
+  }
+
+  String? _extractEmail(Map<String, dynamic> data) {
+    final dynamic value =
+        data['email'] ??
+            data['user']?['email'] ??
+            data['data']?['email'] ??
+            data['data']?['user']?['email'];
+
+    return value?.toString();
+  }
+
+  String? _extractUsername(Map<String, dynamic> data) {
+    final dynamic value =
+        data['username'] ??
+            data['name'] ??
+            data['user']?['username'] ??
+            data['user']?['name'] ??
+            data['data']?['username'] ??
+            data['data']?['name'] ??
+            data['data']?['user']?['username'] ??
+            data['data']?['user']?['name'];
+
+    return value?.toString();
+  }
+
+  String? _extractProfilePic(Map<String, dynamic> data) {
+    final dynamic value =
+        data['profile_pic'] ??
+            data['profile_image'] ??
+            data['image'] ??
+            data['user']?['profile_pic'] ??
+            data['user']?['profile_image'] ??
+            data['user']?['image'] ??
+            data['data']?['profile_pic'] ??
+            data['data']?['profile_image'] ??
+            data['data']?['image'] ??
+            data['data']?['user']?['profile_pic'] ??
+            data['data']?['user']?['profile_image'] ??
+            data['data']?['user']?['image'];
+
+    return value?.toString();
+  }
+
+  String _extractReadableError(
+      Map<String, dynamic> decodedData,
+      String defaultMessage,
+      ) {
+    String message = decodedData['message']?.toString().trim() ?? defaultMessage;
+
+    final errors = decodedData['errors'];
+
+    if (errors is Map) {
+      final List<String> allErrors = [];
+
+      // Sab field errors collect karo
+      errors.forEach((key, value) {
+        if (value is List) {
+          for (final item in value) {
+            final text = item.toString().trim();
+            if (text.isNotEmpty) {
+              allErrors.add(text);
+            }
+          }
+        } else if (value != null) {
+          final text = value.toString().trim();
+          if (text.isNotEmpty) {
+            allErrors.add(text);
+          }
+        }
+      });
+
+      if (allErrors.isNotEmpty) {
+        // Agar phone ka specific error ho to usko priority do
+        final phoneError = allErrors.firstWhere(
+              (e) =>
+          e.toLowerCase().contains('phone') ||
+              e.toLowerCase().contains('mobile'),
+          orElse: () => '',
+        );
+
+        if (phoneError.isNotEmpty) {
+          return phoneError;
+        }
+
+        return allErrors.join('\n');
+      }
+    }
+
+    // Kuch APIs "error" field bhejti hain
+    if (decodedData['error'] != null &&
+        decodedData['error'].toString().trim().isNotEmpty) {
+      return decodedData['error'].toString().trim();
+    }
+
+    return message;
   }
 
   Future<Map<String, dynamic>> signup({
@@ -78,14 +138,14 @@ class AuthService {
   }) async {
     try {
       print('===== SIGNUP API HIT =====');
-      print('URL: $_signupUri');
+      print('URL: $signupUrl');
       print('USERNAME: $username');
       print('EMAIL: $email');
       print('PHONE: $phone');
 
       final response = await http
           .post(
-        _signupUri,
+        Uri.parse(signupUrl),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -100,32 +160,101 @@ class AuthService {
           .timeout(const Duration(seconds: 20));
 
       print('===== SIGNUP RESPONSE =====');
-      print('Status Code: ${response.statusCode}');
-      print('Body: ${response.body}');
+      print('STATUS CODE: ${response.statusCode}');
+      print('BODY: ${response.body}');
 
-      return _handleResponse(response, defaultMessage: 'Signup failed');
+      if (response.body.isEmpty) {
+        return {
+          'success': false,
+          'message': 'Server returned empty response',
+          'user_id': null,
+          'email': null,
+          'username': null,
+          'profile_pic': null,
+          'data': null,
+        };
+      }
+
+      final decodedData = jsonDecode(response.body);
+
+      if (decodedData is! Map<String, dynamic>) {
+        return {
+          'success': false,
+          'message': 'Invalid server response',
+          'user_id': null,
+          'email': null,
+          'username': null,
+          'profile_pic': null,
+          'data': null,
+        };
+      }
+
+      final success = _parseSuccess(decodedData['success'], response.statusCode);
+      final userId = _extractUserId(decodedData);
+      final extractedEmail = _extractEmail(decodedData);
+      final extractedUsername = _extractUsername(decodedData);
+      final extractedProfilePic = _extractProfilePic(decodedData);
+      final normalizedProfilePic =
+      SessionManager.normalizeProfilePic(extractedProfilePic ?? '');
+
+      final readableMessage = _extractReadableError(
+        decodedData,
+        success ? 'Signup successful' : 'Signup failed',
+      );
+
+      print('===== EXTRACTED SIGNUP DATA =====');
+      print('USER ID: $userId');
+      print('EMAIL: $extractedEmail');
+      print('USERNAME: $extractedUsername');
+      print('PROFILE PIC RAW: $extractedProfilePic');
+      print('PROFILE PIC NORMALIZED: $normalizedProfilePic');
+      print('READABLE MESSAGE: $readableMessage');
+
+      return {
+        'success': success,
+        'message': readableMessage,
+        'user_id': userId,
+        'email': extractedEmail ?? email,
+        'username': extractedUsername ?? username,
+        'profile_pic': normalizedProfilePic,
+        'data': decodedData,
+      };
     } on SocketException catch (e) {
       print('===== SIGNUP SOCKET ERROR =====');
       print(e.toString());
 
       return {
         'success': false,
-        'message':
-        'Server ya domain reach nahi ho raha. Internet/DNS issue ho sakta hai. Browser me helpr.digital check karein.',
+        'message': 'Network error. Please check your internet connection.',
+        'user_id': null,
+        'email': null,
+        'username': null,
+        'profile_pic': null,
+        'data': null,
       };
     } on TimeoutException {
       print('===== SIGNUP TIMEOUT ERROR =====');
 
       return {
         'success': false,
-        'message': 'Server response late aa raha hai. Dobara try karein.',
+        'message': 'Server is taking too long to respond.',
+        'user_id': null,
+        'email': null,
+        'username': null,
+        'profile_pic': null,
+        'data': null,
       };
     } on FormatException {
       print('===== SIGNUP FORMAT ERROR =====');
 
       return {
         'success': false,
-        'message': 'Server se invalid response aaya hai.',
+        'message': 'Invalid server response.',
+        'user_id': null,
+        'email': null,
+        'username': null,
+        'profile_pic': null,
+        'data': null,
       };
     } catch (e) {
       print('===== SIGNUP ERROR =====');
@@ -134,51 +263,12 @@ class AuthService {
       return {
         'success': false,
         'message': 'Something went wrong: $e',
+        'user_id': null,
+        'email': null,
+        'username': null,
+        'profile_pic': null,
+        'data': null,
       };
     }
-  }
-
-  Map<String, dynamic> _handleResponse(
-      http.Response response, {
-        required String defaultMessage,
-      }) {
-    Map<String, dynamic> data = {};
-
-    try {
-      data = jsonDecode(response.body);
-    } catch (_) {
-      return {
-        'success': false,
-        'message': 'Server response samajh nahi aaya.',
-        'data': {},
-      };
-    }
-
-    String errorMessage = data['message'] ?? defaultMessage;
-
-    if (data['errors'] != null && data['errors'] is Map) {
-      final errors = data['errors'] as Map<String, dynamic>;
-      List<String> allErrors = [];
-
-      errors.forEach((key, value) {
-        if (value is List) {
-          for (var item in value) {
-            allErrors.add(item.toString());
-          }
-        } else {
-          allErrors.add(value.toString());
-        }
-      });
-
-      if (allErrors.isNotEmpty) {
-        errorMessage = allErrors.join('\n');
-      }
-    }
-
-    return {
-      'success': data['success'] ?? (response.statusCode >= 200 && response.statusCode < 300),
-      'message': errorMessage,
-      'data': data,
-    };
   }
 }

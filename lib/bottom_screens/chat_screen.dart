@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:helper/Authontication_Services/chat%20list%20service.dart';
+import 'package:helper/Authontication_Services/session_manager.dart';
+import 'package:helper/Models/chat%20list%20model.dart';
 import 'package:helper/bottom_screens/message_screen.dart';
+
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -10,6 +14,68 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
+  List<ChatListModel> allChats = [];
+  List<ChatListModel> filteredChats = [];
+
+  bool isLoading = true;
+  int currentUserId = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeChatList();
+  }
+
+  Future<void> _initializeChatList() async {
+    try {
+      setState(() => isLoading = true);
+
+      currentUserId = await SessionManager.getUserId();
+      print('ChatScreen: currentUserId = $currentUserId');
+
+      final chats =
+      await ChatListService.getChatList(userId: currentUserId);
+
+      if (mounted) {
+        setState(() {
+          allChats = chats;
+          filteredChats = chats;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('ChatScreen Error: $e');
+      if (mounted) {
+        setState(() => isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load chats: $e')),
+        );
+      }
+    }
+  }
+
+  void _filterChats(String value) {
+    print('Search: $value');
+
+    setState(() {
+      filteredChats = allChats.where((chat) {
+        final name = chat.username.toLowerCase();
+        final msg = chat.lastMessage.toLowerCase();
+        final query = value.toLowerCase();
+
+        return name.contains(query) || msg.contains(query);
+      }).toList();
+    });
+  }
+
+  String _getMessagePrefix(String message) {
+    if (message.toLowerCase().contains('audio')) {
+      return 'Audio message';
+    }
+    return message;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +87,14 @@ class _ChatScreenState extends State<ChatScreen> {
     final avatarSize = (w < h ? w : h) * 0.11;
 
     return Scaffold(
-      backgroundColor: Color(0xFFEDECEC),
+      backgroundColor: const Color(0xFFEDECEC),
       body: Padding(
         padding: EdgeInsets.only(top: h * 0.085),
         child: Column(
           children: [
-            SizedBox(height: h * 0.010),
+            SizedBox(height: h * 0.01),
 
+            /// Title
             Padding(
               padding: EdgeInsets.only(left: w * 0.04),
               child: Row(
@@ -50,6 +117,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
+                  /// Main Container
                   Positioned.fill(
                     top: h * 0.03,
                     child: Container(
@@ -82,58 +150,51 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                           ),
 
+                          /// CHAT LIST
                           Expanded(
-                            child: SlidableAutoCloseBehavior(
-                              child: ListView(
-                                padding: EdgeInsets.only(bottom: safeBottom + 8),
-                                children: [
+                            child: isLoading
+                                ? const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF2A8DA7),
+                              ),
+                            )
+                                : filteredChats.isEmpty
+                                ? ListView(
+                              children: const [
+                                SizedBox(height: 120),
+                                Center(
+                                  child: Text('No chats found'),
+                                ),
+                              ],
+                            )
+                                : RefreshIndicator(
+                              onRefresh: _initializeChatList,
+                              child: SlidableAutoCloseBehavior(
+                                child: ListView.builder(
+                                  padding: EdgeInsets.only(
+                                      bottom: safeBottom + 8),
+                                  itemCount:
+                                  filteredChats.length,
+                                  itemBuilder: (context, index) {
+                                    final chat =
+                                    filteredChats[index];
 
-                                  buildSlidableChatTile(
-                                    image: 'assets/images/charscreen1.png',
-                                    name: 'Kaitlyn',
-                                    message: 'Have a good one!',
-                                    time: '3:02 PM',
-                                    w: w,
-                                    avatarSize: avatarSize,
-                                    unread: 0,
-                                    isRead: true,
-                                  ),
-
-                                  buildSlidableChatTile(
-                                    image: 'assets/images/chatscreen3.png',
-                                    name: 'Chloe',
-                                    message:
-                                    'Hello, Are you available for toni...',
-                                    time: '3:02 PM',
-                                    unread: 2,
-                                    w: w,
-                                    avatarSize: avatarSize,
-                                    isRead: false,
-                                  ),
-
-                                  buildSlidableChatTile(
-                                    image: 'assets/images/chatscreen4.png',
-                                    name: 'Kaitlyn',
-                                    message: 'Have a good one!',
-                                    time: '3:02 PM',
-                                    w: w,
-                                    avatarSize: avatarSize,
-                                    unread: 0,
-                                    isRead: true,
-                                  ),
-
-                                  buildSlidableChatTile(
-                                    image: 'assets/images/chatscreen5.png',
-                                    name: 'Chloe',
-                                    message:
-                                    'Hello, Are you available for toni...',
-                                    time: '3:02 PM',
-                                    unread: 2,
-                                    w: w,
-                                    avatarSize: avatarSize,
-                                    isRead: false,
-                                  ),
-                                ],
+                                    return _chatTile(
+                                      image: chat.profilePic,
+                                      name: chat.username,
+                                      message: _getMessagePrefix(
+                                          chat.lastMessage),
+                                      time: chat.time,
+                                      unread:
+                                      chat.unreadCount,
+                                      isRead:
+                                      chat.unreadCount == 0,
+                                      userId: chat.userId,
+                                      w: w,
+                                      avatarSize: avatarSize,
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                           ),
@@ -142,25 +203,27 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
 
+                  /// Search
                   Positioned(
                     top: 0,
                     left: w * 0.04,
                     right: w * 0.04,
                     child: Container(
-                      height: h*0.058,
+                      height: h * 0.058,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(w * 0.08),
+                        borderRadius:
+                        BorderRadius.circular(w * 0.08),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.15),
                             blurRadius: 10,
-                            spreadRadius: 0,
                             offset: const Offset(0, 6),
                           ),
                         ],
                       ),
                       child: TextFormField(
-                        cursorColor: const Color(0xFFA4A4A4),
+                        controller: _searchController,
+                        onChanged: _filterChats,
                         decoration: InputDecoration(
                           prefixIcon: Icon(
                             Icons.search,
@@ -168,20 +231,11 @@ class _ChatScreenState extends State<ChatScreen> {
                             size: w * 0.06,
                           ),
                           hintText: 'Search',
-                          hintStyle: TextStyle(
-                            fontWeight: FontWeight.w400,
-                            fontSize:  12,
-                            fontFamily: 'R',
-                            color: const Color(0xFFA4A4A4),
-                          ),
                           filled: true,
                           fillColor: Colors.white,
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(w * 0.08),
-                            borderSide: BorderSide.none,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(w * 0.08),
+                          border: OutlineInputBorder(
+                            borderRadius:
+                            BorderRadius.circular(w * 0.08),
                             borderSide: BorderSide.none,
                           ),
                         ),
@@ -197,31 +251,33 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget buildSlidableChatTile({
-    required String image,
+  Widget _chatTile({
+    required String? image,
     required String name,
     required String message,
     required String time,
+    required int unread,
+    required bool isRead,
+    required int userId,
     required double w,
     required double avatarSize,
-    required bool isRead,
-    int unread = 0,
   }) {
     return Slidable(
-      key: UniqueKey(),
+      key: ValueKey(userId),
       endActionPane: ActionPane(
         motion: const DrawerMotion(),
         extentRatio: 0.15,
         children: [
           CustomSlidableAction(
-            onPressed: (_) {},
+            onPressed: (_) {
+              print('Delete tapped for $userId');
+            },
             child: Container(
-              width: w * 0.11,
-              height: w * 0.18,
               margin: EdgeInsets.all(w * 0.02),
               decoration: BoxDecoration(
                 color: const Color(0xFFFFE7E5),
-                borderRadius: BorderRadius.circular(w * 0.08),
+                borderRadius:
+                BorderRadius.circular(w * 0.08),
               ),
               child: Icon(
                 Icons.delete,
@@ -234,70 +290,70 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       child: GestureDetector(
         onTap: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) => MessageScreen()));
+          print('Open chat with userId = $userId');
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MessageScreen(
+                otherUserId: userId,
+                otherUserName: name,
+              ),
+            ),
+          ).then((_) => _initializeChatList());
         },
         child: Container(
           margin: EdgeInsets.symmetric(
             horizontal: w * 0.04,
-            vertical: w * 0.011,
+            vertical: w * 0.01,
           ),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(w * 0.05),
+            borderRadius:
+            BorderRadius.circular(w * 0.05),
             color: Colors.white,
+            border: Border.all(color: Colors.grey.shade300),
           ),
           child: ListTile(
             leading: CircleAvatar(
               radius: avatarSize / 2,
-              child: ClipOval(
-                child: Image.asset(
-                  image,
-                  width: avatarSize,
-                  height: avatarSize,
-                  fit: BoxFit.cover,
+              backgroundColor: const Color(0xFFE4F9FF),
+              backgroundImage: image != null && image.isNotEmpty
+                  ? NetworkImage(image)
+                  : null,
+              child: (image == null || image.isEmpty)
+                  ? Text(
+                name.isNotEmpty
+                    ? name[0].toUpperCase()
+                    : 'U',
+                style: TextStyle(
+                  color: const Color(0xFF2A8DA7),
+                  fontWeight: FontWeight.bold,
+                  fontSize: w * 0.045,
                 ),
-              ),
+              )
+                  : null,
             ),
             title: Text(
               name,
-              style: TextStyle(fontFamily: 'SB', fontSize: w * 0.04),
+              style: TextStyle(
+                fontFamily: 'SB',
+                fontSize: w * 0.04,
+              ),
             ),
-
-            /// ✅ YAHAN CHANGE KIYA GAYA HAI
-            subtitle: Row(
-              children: [
-                if (isRead)
-                  Padding(
-                    padding: EdgeInsets.only(right: w * 0.015),
-                    child: Image.asset(
-                      'assets/images/chatscreen2.png',
-                      width: w * 0.04,
-                      height: w * 0.04,
-                    ),
-                  ),
-                Expanded(
-                  child: Text(
-                    message,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontFamily: 'R',
-                      fontSize: w * 0.03,
-                    ),
-                  ),
-                ),
-              ],
+            subtitle: Text(
+              message,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
-
             trailing: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(time, style: TextStyle(fontSize: w * 0.025)),
-                if (unread > 0) ...[
-                  SizedBox(height: w * 0.01),
+                Text(time),
+                if (unread > 0)
                   CircleAvatar(
                     radius: w * 0.022,
-                    backgroundColor: Color(0xFF2A8DA7),
+                    backgroundColor:
+                    const Color(0xFF2A8DA7),
                     child: Text(
                       unread.toString(),
                       style: TextStyle(
@@ -306,7 +362,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                   ),
-                ],
               ],
             ),
           ),
