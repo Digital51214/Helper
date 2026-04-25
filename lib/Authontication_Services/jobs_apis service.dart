@@ -16,8 +16,6 @@ class JobService {
   }) async {
     final url = Uri.parse("$baseUrl/jobs/create");
 
-    print("POST JOB API URL: $url");
-
     final body = {
       "client_id": clientId,
       "category": category,
@@ -29,18 +27,53 @@ class JobService {
       "location": location,
     };
 
+    print("POST JOB API URL: $url");
     print("POST JOB BODY: $body");
 
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(body),
-    );
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode(body),
+      );
 
-    print("POST JOB STATUS: ${response.statusCode}");
-    print("POST JOB RESPONSE: ${response.body}");
+      print("POST JOB STATUS: ${response.statusCode}");
+      print("POST JOB RESPONSE: ${response.body}");
 
-    return jsonDecode(response.body);
+      if (response.body.trim().isEmpty) {
+        return {
+          "success": false,
+          "message": "Server returned empty response",
+        };
+      }
+
+      try {
+        final decoded = jsonDecode(response.body);
+
+        if (decoded is Map<String, dynamic>) {
+          return decoded;
+        }
+
+        return {
+          "success": false,
+          "message": "Server response format is not valid",
+        };
+      } catch (e) {
+        return {
+          "success": false,
+          "message": response.body,
+          "status_code": response.statusCode,
+        };
+      }
+    } catch (e) {
+      return {
+        "success": false,
+        "message": "Network error: $e",
+      };
+    }
   }
 
   static Future<Map<String, dynamic>> getClientHome({
@@ -50,15 +83,50 @@ class JobService {
 
     print("MY JOBS API URL: $url");
 
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"client_id": clientId}),
-    );
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({"client_id": clientId}),
+      );
 
-    print("MY JOBS STATUS: ${response.statusCode}");
-    print("MY JOBS RESPONSE: ${response.body}");
+      print("MY JOBS STATUS: ${response.statusCode}");
+      print("MY JOBS RESPONSE: ${response.body}");
 
-    return jsonDecode(response.body);
+      if (response.body.trim().isEmpty) {
+        return {
+          "success": false,
+          "message": "Server returned empty response",
+        };
+      }
+
+      try {
+        final decoded = jsonDecode(response.body);
+
+        if (decoded is Map<String, dynamic>) {
+          return decoded;
+        }
+
+        return {
+          "success": false,
+          "message": "Server response format is not valid",
+        };
+      } catch (e) {
+        return {
+          "success": false,
+          "message": "Server returned invalid response",
+          "status_code": response.statusCode,
+          "raw_response": response.body,
+        };
+      }
+    } catch (e) {
+      return {
+        "success": false,
+        "message": "Network error: $e",
+      };
+    }
   }
 }

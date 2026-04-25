@@ -8,6 +8,51 @@ import 'package:helper/auth_screen/termscondition.dart';
 import 'package:helper/components/custom_textformfield.dart';
 import 'package:helper/components/container_button.dart';
 
+class PasswordValidator {
+  static final RegExp _uppercaseRegExp = RegExp(r'[A-Z]');
+  static final RegExp _lowercaseRegExp = RegExp(r'[a-z]');
+  static final RegExp _digitRegExp = RegExp(r'\d');
+  static final RegExp _specialCharRegExp =
+  RegExp(r'[!@#$%^&*(),.?":{}|<>_\-\/\[\]=+;`~]');
+
+  static bool hasMinLength(String value) => value.length >= 8;
+  static bool hasUppercase(String value) => _uppercaseRegExp.hasMatch(value);
+  static bool hasLowercase(String value) => _lowercaseRegExp.hasMatch(value);
+  static bool hasDigit(String value) => _digitRegExp.hasMatch(value);
+  static bool hasSpecialCharacter(String value) =>
+      _specialCharRegExp.hasMatch(value);
+
+  static bool isValid(String value) {
+    return hasMinLength(value) &&
+        hasUppercase(value) &&
+        hasLowercase(value) &&
+        hasDigit(value) &&
+        hasSpecialCharacter(value);
+  }
+
+  static String? validate(String value) {
+    if (value.isEmpty) {
+      return 'Password is required';
+    }
+    if (!hasMinLength(value)) {
+      return 'Password must be at least 8 characters';
+    }
+    if (!hasUppercase(value)) {
+      return 'Password must contain at least 1 uppercase letter';
+    }
+    if (!hasLowercase(value)) {
+      return 'Password must contain at least 1 lowercase letter';
+    }
+    if (!hasDigit(value)) {
+      return 'Password must contain at least 1 digit';
+    }
+    if (!hasSpecialCharacter(value)) {
+      return 'Password must contain at least 1 special character';
+    }
+    return null;
+  }
+}
+
 class SignUp extends StatefulWidget {
   const SignUp({super.key});
 
@@ -76,9 +121,10 @@ class _SignUpState extends State<SignUp> {
       return;
     }
 
-    if (password.length < 6) {
+    final passwordError = PasswordValidator.validate(password);
+    if (passwordError != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 6 characters')),
+        SnackBar(content: Text(passwordError)),
       );
       return;
     }
@@ -427,8 +473,8 @@ class _SignUpState extends State<SignUp> {
                           ),
                         ),
                       ),
-                      Expanded(
-                        child: const Divider(
+                      const Expanded(
+                        child: Divider(
                           thickness: 1.25,
                           color: Colors.grey,
                         ),

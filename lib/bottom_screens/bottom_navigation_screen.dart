@@ -21,17 +21,55 @@ class BottomNavigationScreen extends StatefulWidget {
 class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
   late int currentIndex;
 
-  final List<Widget> pages = [
-    HomeScreen(),
-    ChatScreen(),
-    Myjobs(),
-    ProfileScreen(),
-  ];
+  final GlobalKey<HomeScreenState> homeKey = GlobalKey<HomeScreenState>();
+
+  late final List<Widget> pages;
 
   @override
   void initState() {
     super.initState();
+
     currentIndex = widget.currentIndex;
+
+    pages = [
+      HomeScreen(key: homeKey),
+      const ChatScreen(),
+      const Myjobs(),
+      ProfileScreen(
+        onGoToProfileTab: () {
+          homeKey.currentState?.refreshHomeData();
+        },
+      ),
+    ];
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      homeKey.currentState?.refreshHomeData();
+    });
+  }
+
+  void changeTab(int index) {
+    setState(() {
+      currentIndex = index;
+    });
+
+    if (index == 0) {
+      homeKey.currentState?.refreshHomeData();
+    }
+  }
+
+  Future<void> openPostJobScreen() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const PostjobScreen(),
+      ),
+    );
+
+    homeKey.currentState?.refreshHomeData();
+
+    setState(() {
+      currentIndex = 0;
+    });
   }
 
   @override
@@ -44,9 +82,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
     return WillPopScope(
       onWillPop: () async {
         if (currentIndex != 0) {
-          setState(() {
-            currentIndex = 0;
-          });
+          changeTab(0);
           return false;
         }
         return true;
@@ -58,22 +94,15 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
           children: pages,
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => PostjobScreen(),
-              ),
-            );
-          },
+          onPressed: openPostJobScreen,
           backgroundColor: Colors.black,
           shape: const CircleBorder(),
+          elevation: 4,
           child: Image.asset(
             'assets/images/homeicon8.png',
             height: 21 * tScale,
             width: 21 * tScale,
           ),
-          elevation: 4,
         ),
         floatingActionButtonLocation:
         FloatingActionButtonLocation.centerDocked,
@@ -124,9 +153,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
 
     return InkWell(
       onTap: () {
-        setState(() {
-          currentIndex = index;
-        });
+        changeTab(index);
       },
       borderRadius: BorderRadius.circular(12 * tScale),
       splashColor: Colors.transparent,
@@ -159,14 +186,16 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
   }
 
   Widget navItemWidgetIcon(
-      IconData icon, String title, int index, double tScale) {
+      IconData icon,
+      String title,
+      int index,
+      double tScale,
+      ) {
     bool isSelected = currentIndex == index;
 
     return InkWell(
       onTap: () {
-        setState(() {
-          currentIndex = index;
-        });
+        changeTab(index);
       },
       borderRadius: BorderRadius.circular(12 * tScale),
       splashColor: Colors.transparent,
@@ -178,7 +207,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
           children: [
             Icon(
               icon,
-              size: index == 3 ? 28 * tScale : 24 * tScale, // 👈 index 3 bigger
+              size: index == 3 ? 28 * tScale : 24 * tScale,
               color: isSelected ? Colors.white : Colors.grey,
             ),
             SizedBox(height: 4 * tScale),

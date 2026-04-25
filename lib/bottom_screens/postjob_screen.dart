@@ -85,16 +85,9 @@ class _PostjobScreenState extends State<PostjobScreen> {
       String imageBase64 = "";
 
       if (selectedImages.isNotEmpty) {
-        final List<String> base64Images = [];
-
-        for (final image in selectedImages) {
-          final bytes = await image.readAsBytes();
-          base64Images.add(base64Encode(bytes));
-        }
-
-        imageBase64 = jsonEncode(base64Images);
+        final bytes = await selectedImages.first.readAsBytes();
+        imageBase64 = base64Encode(bytes);
       }
-
       print("========== POST JOB START ==========");
       print("client_id: $clientId");
       print("category: $selectedCategory");
@@ -117,7 +110,6 @@ class _PostjobScreenState extends State<PostjobScreen> {
             ? "Multan Cantt"
             : locationController.text.trim(),
       );
-
       print("POST JOB FINAL RESPONSE: $response");
       print("========== POST JOB END ==========");
 

@@ -103,6 +103,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (updated == true) {
       await _loadProfile();
+      widget.onGoToProfileTab?.call();
     }
   }
 

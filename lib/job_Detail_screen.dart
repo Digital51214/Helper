@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:helper/Models/job%20model.dart';
 
@@ -9,39 +7,9 @@ class JobDetailScreen extends StatelessWidget {
   const JobDetailScreen({super.key, required this.job});
 
   List<String> getJobImages() {
-    if (job.images.trim().isEmpty) return [];
-
-    List<String> rawImages = [];
-
-    try {
-      final decoded = jsonDecode(job.images);
-
-      if (decoded is List) {
-        rawImages = decoded.map((e) => e.toString()).toList();
-      } else if (decoded is String) {
-        rawImages = [decoded];
-      }
-    } catch (e) {
-      rawImages = job.images
-          .replaceAll('[', '')
-          .replaceAll(']', '')
-          .replaceAll('"', '')
-          .split(',')
-          .map((e) => e.trim())
-          .where((e) => e.isNotEmpty)
-          .toList();
-    }
-
-    return rawImages.map((image) {
-      final cleanImage = image.trim();
-
-      if (cleanImage.startsWith("http")) {
-        return cleanImage;
-      }
-
-      return "https://helpr.digital/$cleanImage";
-    }).toList();
+    return job.fullJobImages;
   }
+
   void openImagePreview(BuildContext context, String imageUrl) {
     showDialog(
       context: context,
@@ -211,8 +179,7 @@ class JobDetailScreen extends StatelessWidget {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: images.length,
-                        gridDelegate:
-                        SliverGridDelegateWithFixedCrossAxisCount(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 3,
                           crossAxisSpacing: w * 0.025,
                           mainAxisSpacing: h * 0.012,

@@ -53,13 +53,48 @@ class JobModel {
       updatedAt: json["updated_at"] ?? "",
       categoryIcon: json["category_icon"] ?? "",
       postedAt: json["posted_at"] ?? "",
-      appliedCount: json["applied_count"] ?? "50k+ Applied",
+      appliedCount: json["applied_count"]?.toString() ?? "50k+ Applied",
     );
   }
 
+  List<String> get fullJobImages {
+    if (images.trim().isEmpty) return [];
+
+    List<String> rawImages = [];
+
+    try {
+      final decoded = jsonDecode(images);
+
+      if (decoded is List) {
+        rawImages = decoded.map((e) => e.toString()).toList();
+      } else if (decoded is String) {
+        rawImages = [decoded];
+      }
+    } catch (e) {
+      rawImages = images
+          .replaceAll('[', '')
+          .replaceAll(']', '')
+          .replaceAll('"', '')
+          .split(',')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+    }
+
+    return rawImages.map((image) {
+      final cleanImage = image.trim();
+
+      if (cleanImage.startsWith("http")) {
+        return cleanImage;
+      }
+
+      return "https://helpr.digital/$cleanImage";
+    }).toList();
+  }
+
   String get fullJobImage {
-    if (images.isEmpty) return "";
-    if (images.startsWith("http")) return images;
-    return "https://helpr.digital/$images";
+    final allImages = fullJobImages;
+    if (allImages.isEmpty) return "";
+    return allImages.first;
   }
 }
