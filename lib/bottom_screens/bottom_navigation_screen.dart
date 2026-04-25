@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:helper/bottom_screens/postjob_screen.dart';
 import 'package:helper/bottom_screens/myjobs.dart';
 import 'package:helper/bottom_screens/profile_screen.dart';
-import 'package:helper/floatscreen.dart';
 import 'chat_screen.dart';
 import 'home_screen.dart';
 
@@ -25,7 +24,6 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
   final List<Widget> pages = [
     HomeScreen(),
     ChatScreen(),
-    Floatscreen(),
     Myjobs(),
     ProfileScreen(),
   ];
@@ -104,13 +102,13 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
                 navItemWidgetIcon(
                   Icons.manage_search_rounded,
                   "My jobs",
-                  3,
+                  2,
                   tScale,
                 ),
                 navItemWidgetIcon(
                   Icons.person,
                   "Profile",
-                  4,
+                  3,
                   tScale,
                 ),
               ],

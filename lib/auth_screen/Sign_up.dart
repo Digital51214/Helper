@@ -120,6 +120,10 @@ class _SignUpState extends State<SignUp> {
             ? result['user_id']
             : int.tryParse(result['user_id']?.toString() ?? '0') ?? 0;
 
+        final int clientId = result['client_id'] is int
+            ? result['client_id']
+            : int.tryParse(result['client_id']?.toString() ?? '0') ?? userId;
+
         final String savedEmail =
         (result['email']?.toString().isNotEmpty ?? false)
             ? result['email'].toString().trim().toLowerCase()
@@ -132,8 +136,18 @@ class _SignUpState extends State<SignUp> {
 
         final String profilePic = result['profile_pic']?.toString() ?? '';
 
+        if (userId == 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Signup successful but user id not found from API'),
+            ),
+          );
+          return;
+        }
+
         await SessionManager.saveLoginSession(
           userId: userId,
+          clientId: clientId,
           email: savedEmail,
           username: savedUsername,
           profilePic: profilePic,

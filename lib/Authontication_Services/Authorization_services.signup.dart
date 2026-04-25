@@ -34,6 +34,21 @@ class AuthService {
     return int.tryParse(id?.toString() ?? '');
   }
 
+  int? _extractClientId(Map<String, dynamic> data) {
+    final dynamic id =
+        data['client_id'] ??
+            data['client']?['id'] ??
+            data['user']?['client_id'] ??
+            data['user']?['client']?['id'] ??
+            data['data']?['client_id'] ??
+            data['data']?['client']?['id'] ??
+            data['data']?['user']?['client_id'] ??
+            data['data']?['user']?['client']?['id'];
+
+    if (id is int) return id;
+    return int.tryParse(id?.toString() ?? '');
+  }
+
   String? _extractEmail(Map<String, dynamic> data) {
     final dynamic value =
         data['email'] ??
@@ -87,7 +102,6 @@ class AuthService {
     if (errors is Map) {
       final List<String> allErrors = [];
 
-      // Sab field errors collect karo
       errors.forEach((key, value) {
         if (value is List) {
           for (final item in value) {
@@ -105,7 +119,6 @@ class AuthService {
       });
 
       if (allErrors.isNotEmpty) {
-        // Agar phone ka specific error ho to usko priority do
         final phoneError = allErrors.firstWhere(
               (e) =>
           e.toLowerCase().contains('phone') ||
@@ -121,7 +134,6 @@ class AuthService {
       }
     }
 
-    // Kuch APIs "error" field bhejti hain
     if (decodedData['error'] != null &&
         decodedData['error'].toString().trim().isNotEmpty) {
       return decodedData['error'].toString().trim();
@@ -168,6 +180,7 @@ class AuthService {
           'success': false,
           'message': 'Server returned empty response',
           'user_id': null,
+          'client_id': null,
           'email': null,
           'username': null,
           'profile_pic': null,
@@ -182,6 +195,7 @@ class AuthService {
           'success': false,
           'message': 'Invalid server response',
           'user_id': null,
+          'client_id': null,
           'email': null,
           'username': null,
           'profile_pic': null,
@@ -191,6 +205,8 @@ class AuthService {
 
       final success = _parseSuccess(decodedData['success'], response.statusCode);
       final userId = _extractUserId(decodedData);
+      final clientId = _extractClientId(decodedData) ?? userId;
+
       final extractedEmail = _extractEmail(decodedData);
       final extractedUsername = _extractUsername(decodedData);
       final extractedProfilePic = _extractProfilePic(decodedData);
@@ -204,6 +220,7 @@ class AuthService {
 
       print('===== EXTRACTED SIGNUP DATA =====');
       print('USER ID: $userId');
+      print('CLIENT ID: $clientId');
       print('EMAIL: $extractedEmail');
       print('USERNAME: $extractedUsername');
       print('PROFILE PIC RAW: $extractedProfilePic');
@@ -214,6 +231,7 @@ class AuthService {
         'success': success,
         'message': readableMessage,
         'user_id': userId,
+        'client_id': clientId,
         'email': extractedEmail ?? email,
         'username': extractedUsername ?? username,
         'profile_pic': normalizedProfilePic,
@@ -227,6 +245,7 @@ class AuthService {
         'success': false,
         'message': 'Network error. Please check your internet connection.',
         'user_id': null,
+        'client_id': null,
         'email': null,
         'username': null,
         'profile_pic': null,
@@ -239,6 +258,7 @@ class AuthService {
         'success': false,
         'message': 'Server is taking too long to respond.',
         'user_id': null,
+        'client_id': null,
         'email': null,
         'username': null,
         'profile_pic': null,
@@ -251,6 +271,7 @@ class AuthService {
         'success': false,
         'message': 'Invalid server response.',
         'user_id': null,
+        'client_id': null,
         'email': null,
         'username': null,
         'profile_pic': null,
@@ -264,6 +285,7 @@ class AuthService {
         'success': false,
         'message': 'Something went wrong: $e',
         'user_id': null,
+        'client_id': null,
         'email': null,
         'username': null,
         'profile_pic': null,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:helper/Authontication_Services/Authorization_services.login.dart';
 import 'package:helper/Authontication_Services/session_manager.dart';
+import 'package:helper/Authontication_Services/session%20manager%20for%20post%20jobs.dart';
 import 'package:helper/auth_screen/Sign_up.dart';
 import 'package:helper/bottom_screens/bottom_navigation_screen.dart';
 import 'package:helper/components/container_button.dart';
@@ -41,9 +42,7 @@ class _LoginState extends State<Login> {
 
     if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter email and password'),
-        ),
+        const SnackBar(content: Text('Please enter email and password')),
       );
       return;
     }
@@ -65,6 +64,10 @@ class _LoginState extends State<Login> {
             ? result['user_id']
             : int.tryParse(result['user_id']?.toString() ?? '0') ?? 0;
 
+        final int clientId = result['client_id'] is int
+            ? result['client_id']
+            : int.tryParse(result['client_id']?.toString() ?? '0') ?? userId;
+
         final String savedEmail =
         (result['email']?.toString().isNotEmpty ?? false)
             ? result['email'].toString().trim().toLowerCase()
@@ -84,10 +87,13 @@ class _LoginState extends State<Login> {
 
         await SessionManager.saveLoginSession(
           userId: userId,
+          clientId: clientId,
           email: savedEmail,
           username: username,
           profilePic: profilePic,
         );
+
+        await SessionManager4.saveClientId(clientId);
 
         if (!mounted) return;
 
@@ -205,9 +211,7 @@ class _LoginState extends State<Login> {
                     });
                   },
                   icon: Icon(
-                    _obsecureText
-                        ? Icons.visibility
-                        : Icons.visibility_off,
+                    _obsecureText ? Icons.visibility : Icons.visibility_off,
                     color: const Color(0xFFC6C6C6),
                   ),
                 ),

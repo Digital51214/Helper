@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SessionManager {
   static const String _isLoggedInKey = 'is_logged_in';
   static const String _userIdKey = 'user_id';
+  static const String _clientIdKey = 'client_id';
   static const String _userEmailKey = 'user_email';
   static const String _userNameKey = 'user_name';
   static const String _profilePicKey = 'profile_pic';
@@ -28,20 +29,25 @@ class SessionManager {
   static Future<void> saveLoginSession({
     required int userId,
     required String email,
+    int? clientId,
     String username = '',
     String profilePic = '',
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final normalizedProfilePic = normalizeProfilePic(profilePic);
 
+    final int finalClientId = clientId ?? userId;
+
     await prefs.setBool(_isLoggedInKey, true);
     await prefs.setInt(_userIdKey, userId);
+    await prefs.setInt(_clientIdKey, finalClientId);
     await prefs.setString(_userEmailKey, email);
     await prefs.setString(_userNameKey, username);
     await prefs.setString(_profilePicKey, normalizedProfilePic);
 
     print('===== SESSION SAVED =====');
     print('USER ID   : $userId');
+    print('CLIENT ID : $finalClientId');
     print('EMAIL     : $email');
     print('USERNAME  : $username');
     print('PROFILE   : $normalizedProfilePic');
@@ -75,6 +81,11 @@ class SessionManager {
     return prefs.getInt(_userIdKey) ?? 0;
   }
 
+  static Future<int> getClientId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_clientIdKey) ?? 0;
+  }
+
   static Future<String> getUserEmail() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_userEmailKey) ?? '';
@@ -96,6 +107,7 @@ class SessionManager {
 
     await prefs.remove(_isLoggedInKey);
     await prefs.remove(_userIdKey);
+    await prefs.remove(_clientIdKey);
     await prefs.remove(_userEmailKey);
     await prefs.remove(_userNameKey);
     await prefs.remove(_profilePicKey);
